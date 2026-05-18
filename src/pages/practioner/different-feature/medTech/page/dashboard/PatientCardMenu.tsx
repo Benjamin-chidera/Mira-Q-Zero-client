@@ -1,0 +1,114 @@
+import { useState, useRef, useEffect } from 'react';
+import { MoreVertical, Edit, Trash2, CheckCircle2, XCircle, Archive } from 'lucide-react';
+
+interface PatientCardMenuProps {
+  patientId: number | string;
+  patientName: string;
+}
+
+export function PatientCardMenu({ patientId, patientName }: PatientCardMenuProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  function handleToggle(e: React.MouseEvent) {
+    e.stopPropagation();
+    if (!isOpen && buttonRef.current) {
+      // Compute fixed position from button rect so overflow-hidden on card doesn't clip the menu
+      const rect = buttonRef.current.getBoundingClientRect();
+      setMenuPosition({
+        top: rect.bottom + 4,
+        right: window.innerWidth - rect.right,
+      });
+    }
+    setIsOpen(!isOpen);
+  }
+
+  function handleAction(action: string) {
+    // TODO: wire up real actions
+    console.log(`Action: ${action} for patient #${patientId} - ${patientName}`);
+    setIsOpen(false);
+  }
+
+  const menuItems = [
+    {
+      label: 'Update Patient Details',
+      icon: Edit,
+      action: 'update',
+      className: 'text-gray-700 hover:bg-gray-50',
+    },
+    {
+      label: 'Delete Patient',
+      icon: Trash2,
+      action: 'delete',
+      className: 'text-red-600 hover:bg-red-50',
+    },
+    {
+      label: 'Mark as Complete',
+      icon: CheckCircle2,
+      action: 'complete',
+      className: 'text-green-600 hover:bg-green-50',
+    },
+    {
+      label: 'Mark as Failure',
+      icon: XCircle,
+      action: 'failure',
+      className: 'text-red-500 hover:bg-red-50',
+    },
+    {
+      label: 'Mark as Abandoned',
+      icon: Archive,
+      action: 'abandoned',
+      className: 'text-gray-500 hover:bg-gray-50',
+    },
+  ];
+
+  return (
+    <div className="relative" onClick={(e) => e.stopPropagation()}>
+      <button
+        ref={buttonRef}
+        onClick={handleToggle}
+        className="p-1.5 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors"
+        title="More options"
+      >
+        <MoreVertical className="w-4 h-4" />
+      </button>
+
+      {isOpen && (
+        // Fixed positioning escapes the parent card's overflow-hidden so all 5 options are visible
+        <div
+          ref={menuRef}
+          style={{ position: 'fixed', top: menuPosition.top, right: menuPosition.right }}
+          className="z-200 w-[210px] bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <button
+                key={item.action}
+                onClick={() => handleAction(item.action)}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium transition-colors ${item.className}`}
+              >
+                <Icon className="w-4 h-4 shrink-0" />
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}

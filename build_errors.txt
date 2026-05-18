@@ -1,0 +1,21 @@
+src/components/FeatureSwitch/Page-feature-Switch.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/components/pageComponents/connect/booking-details-filling.tsx(22,20): error TS6133: 'setPostCode' is declared but its value is never read.
+src/components/pageComponents/connect/booking-details-filling.tsx(32,10): error TS6133: 'nhsNumber' is declared but its value is never read.
+src/components/pageComponents/connect/sidebar.tsx(1,20): error TS6133: 'useRef' is declared but its value is never read.
+src/components/pageComponents/connect/sidebar.tsx(48,26): error TS6133: 'setBookingForSelf' is declared but its value is never read.
+src/components/pageComponents/connect/sidebar.tsx(49,18): error TS6133: 'setMyName' is declared but its value is never read.
+src/components/pageComponents/connect/sidebar.tsx(50,23): error TS6133: 'setPatientName' is declared but its value is never read.
+src/components/pageComponents/connect/sidebar.tsx(51,24): error TS6133: 'setPatientEmail' is declared but its value is never read.
+src/components/pageComponents/connect/sidebar.tsx(52,24): error TS6133: 'setPatientPhone' is declared but its value is never read.
+src/pages/practioner/different-feature/medTech/page/dashboard/components/AIResearcher.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/pages/practioner/different-feature/medTech/page/dashboard/components/CaseHistory.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/pages/practioner/different-feature/medTech/page/dashboard/components/DashboardHeader.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/pages/practioner/different-feature/medTech/page/dashboard/components/DashboardSidebar.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/pages/practioner/different-feature/medTech/page/dashboard/components/DetailDrawer.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/pages/practioner/different-feature/medTech/page/dashboard/components/PatientList.tsx(76,42): error TS2322: Type 'string | number' is not assignable to type 'number'.
+  Type 'string' is not assignable to type 'number'.
+src/pages/practioner/different-feature/medTech/page/dashboard/components/ResearchCenter.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
+src/pages/practioner/different-feature/medTech/page/dashboard/page.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/pages/practioner/different-feature/medTech/page/informLead/page.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/pages/practioner/different-feature/medTech/page/researchEvidence/page.tsx(1,8): error TS6133: 'React' is declared but its value is never read.
+src/pages/practioner/different-feature/medTech/page/voiceMode/page.tsx(1,1): error TS6133: 'React' is declared but its value is never read.
