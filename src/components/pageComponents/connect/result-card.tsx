@@ -34,6 +34,9 @@ const ResultCard = ({
 }: ResultCardProps) => {
   const [pickedSlot, setPickedSlot] = useState<GPSlot | null>(null);
 
+  // console.log(generatedSlots);
+  
+
   return (
     <Card className="w-full border-none shadow-md overflow-hidden bg-white shrink-0">
       <CardContent className="px-4 flex flex-col gap-4">

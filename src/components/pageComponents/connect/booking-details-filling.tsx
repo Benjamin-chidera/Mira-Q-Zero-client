@@ -42,6 +42,7 @@ export const BookingDetailsFilling = () => {
     setOpenBookingModal,
     selectedGp,
     setVerifiedNhsNumber,
+    setVerifiedPatientName,
   } = useConnectStore();
 
   const handleContinue = async () => {
@@ -90,6 +91,8 @@ export const BookingDetailsFilling = () => {
       if (verifiedNhsNumber) {
         setNhsNumber(verifiedNhsNumber);
         setVerifiedNhsNumber(verifiedNhsNumber);
+        // Save the patient name to the store so VoiceAgentModal can use it
+        setVerifiedPatientName(name);
         setVerifying(false);
         setOpenBookingModal(false);
         setOpenModal(true);

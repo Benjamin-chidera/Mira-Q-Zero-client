@@ -39,19 +39,12 @@ const Sidebar = () => {
     setOpenVoiceAgent,
     openVoiceAgent,
     verifiedNhsNumber,
+    verifiedPatientName,
     selectedSlot,
   } = useConnectStore();
   const [postCode, setPostCode] = useState("");
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("17:00");
-
-  const [bookingForSelf] = useState(true);
-  const [myName] = useState("");
-  const [patientName] = useState("");
-  const [patientEmail] = useState("");
-  const [patientPhone] = useState("");
-
-  const resolvedPatientName = bookingForSelf ? myName : patientName;
 
   return (
     <div className="w-80 bg-[#F5FAFF] text-black h-screen p-6 flex flex-col gap-8 border-r border-gray-200 overflow-y-auto">
@@ -120,28 +113,30 @@ const Sidebar = () => {
         </Label>
         <div className={cn("grid gap-2")}>
           <Popover>
-            <PopoverTrigger>
-              <Button
-                id="date"
-                variant={"outline"}
-                className={cn(
-                  "w-full justify-start text-left font-normal bg-white border-gray-300",
-                  !date && "text-muted-foreground",
-                )}
-              >
-                {date?.from ? (
-                  date.to ? (
-                    <>
-                      {format(date.from, "LLL dd, y")} -{" "}
-                      {format(date.to, "LLL dd, y")}
-                    </>
-                  ) : (
-                    format(date.from, "LLL dd, y")
-                  )
+            <PopoverTrigger
+              render={
+                <Button
+                  id="date"
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal bg-white border-gray-300",
+                    !date && "text-muted-foreground"
+                  )}
+                />
+              }
+            >
+              {date?.from ? (
+                date.to ? (
+                  <>
+                    {format(date.from, "LLL dd, y")} -{" "}
+                    {format(date.to, "LLL dd, y")}
+                  </>
                 ) : (
-                  <span>Pick a date</span>
-                )}
-              </Button>
+                  format(date.from, "LLL dd, y")
+                )
+              ) : (
+                <span>Pick a date</span>
+              )}
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0" align="start">
               <Calendar
@@ -217,14 +212,15 @@ const Sidebar = () => {
         open={openVoiceAgent}
         onClose={() => setOpenVoiceAgent(false)}
         bookingData={{
-          patientName: resolvedPatientName,
-          email: patientEmail,
-          phone: patientPhone,
+          patientName: verifiedPatientName,
+          email: "",
+          phone: "",
         }}
         gpName={selectedGp?.name ?? "your GP"}
         odsCode={selectedGp?.odsCode ?? ""}
         slotId={selectedSlot?.id ?? null}
         nhsNumber={verifiedNhsNumber}
+        practitionerName={selectedSlot?.practitioner_name ?? selectedGp?.practitionerName}
       />
     </div>
   );

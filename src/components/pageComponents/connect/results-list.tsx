@@ -21,6 +21,9 @@ const ResultsList = () => {
     );
   }
 
+  console.log(filteredGps);
+  
+
   return (
     <div className="absolute top-8 right-8 z-10 w-[420px] max-h-[calc(100vh-64px)] overflow-y-auto flex flex-col gap-5 pr-4 pb-8 custom-scrollbar">
       <div className="bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-sm border border-white/20 mb-1">
