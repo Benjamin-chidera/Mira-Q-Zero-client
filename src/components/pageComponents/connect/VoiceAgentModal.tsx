@@ -424,7 +424,7 @@ export function VoiceAgentModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300">
-      <div className="bg-gradient-to-b from-[#1E293B] to-[#0F172A] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl border border-white/10 flex flex-col">
+      <div className="bg-linear-to-b from-[#1E293B] to-[#0F172A] rounded-2xl w-full max-w-md overflow-hidden shadow-2xl border border-white/10 flex flex-col">
         {/* Header */}
         <div className="bg-[#005EB8] px-6 py-4 flex items-center justify-between shadow-md border-b border-white/10">
           <div>
@@ -570,7 +570,7 @@ export function VoiceAgentModal({
 
           {/* Agent message bubble */}
           {agentMessage && (
-            <div className="bg-gradient-to-r from-[#1E293B] to-[#243447] rounded-2xl rounded-tl-sm px-5 py-4 w-full border border-white/5 shadow-md">
+            <div className="bg-linear-to-r from-[#1E293B] to-[#243447] rounded-2xl rounded-tl-sm px-5 py-4 w-full border border-white/5 shadow-md">
               <p className="text-[#94A3B8] text-[10px] uppercase font-bold tracking-wider mb-1 select-none">
                 GP Assistant
               </p>
@@ -590,8 +590,8 @@ export function VoiceAgentModal({
                 <div className={cn(
                   "absolute top-0 left-0 w-full h-[2px] animate-pulse",
                   status === "listening" && !isMuted 
-                    ? "bg-gradient-to-r from-red-500/20 via-red-500 to-red-500/20"
-                    : "bg-gradient-to-r from-blue-500/20 via-blue-500 to-blue-500/20"
+                    ? "bg-linear-to-r from-red-500/20 via-red-500 to-red-500/20"
+                    : "bg-linear-to-r from-blue-500/20 via-blue-500 to-blue-500/20"
                 )} />
                 
                 <div className="flex items-center justify-between mb-2">
