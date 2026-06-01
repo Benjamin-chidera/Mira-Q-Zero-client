@@ -68,6 +68,10 @@ interface ConnectState {
   setVerifiedNhsNumber: (nhs: string | null) => void;
   verifiedPatientName: string;
   setVerifiedPatientName: (name: string) => void;
+  verifiedPatientEmail: string;
+  setVerifiedPatientEmail: (email: string) => void;
+  verifiedPatientPhone: string;
+  setVerifiedPatientPhone: (phone: string) => void;
   selectedSlot: GPSlot | null;
   setSelectedSlot: (slot: GPSlot | null) => void;
 }
@@ -114,6 +118,10 @@ const useConnectStore = create<ConnectState>((set, get) => ({
   setVerifiedNhsNumber: (verifiedNhsNumber) => set({ verifiedNhsNumber }),
   verifiedPatientName: "",
   setVerifiedPatientName: (verifiedPatientName) => set({ verifiedPatientName }),
+  verifiedPatientEmail: "",
+  setVerifiedPatientEmail: (verifiedPatientEmail) => set({ verifiedPatientEmail }),
+  verifiedPatientPhone: "",
+  setVerifiedPatientPhone: (verifiedPatientPhone) => set({ verifiedPatientPhone }),
   selectedSlot: null,
   setSelectedSlot: (selectedSlot) => set({ selectedSlot }),
 

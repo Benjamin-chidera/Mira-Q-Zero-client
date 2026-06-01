@@ -95,7 +95,7 @@ export const ResearchEvidenceModal = ({ isOpen, onClose, title = "AI Investigato
              </div>
           </div>
         </div>
-h
+
         {/* Right Main Area: Evidence Detail */}
         <div className="flex-1 flex flex-col bg-[#F8FAFC]">
           {/* Header */}

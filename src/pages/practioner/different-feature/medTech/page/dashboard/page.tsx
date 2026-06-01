@@ -36,7 +36,7 @@ export default function MedTechDashboard() {
       <DashboardSidebar
         activeView={activeView} 
         setActiveView={setActiveView} 
-        setShowDetail={setShowDetail} 
+        setShowDetail={setShowDetail}
       />
 
       {/* Main Content Area Wrapper */}
@@ -89,6 +89,7 @@ export default function MedTechDashboard() {
               activeView={activeView}
               selectedResearchItem={selectedResearchItem}
               selectedPatient={selectedPatient}
+              setIsCallDialogOpen={setIsCallDialogOpen}
             />
 
          </main>

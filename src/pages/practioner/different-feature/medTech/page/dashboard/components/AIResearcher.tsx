@@ -46,7 +46,7 @@ export function AIResearcher({ setIsCallDialogOpen }: AIResearcherProps) {
           onClick={() => setIsCallDialogOpen(true)}
           className="bg-[#005EB8] hover:bg-[#004A99] text-white px-5 py-2.5 rounded-full text-[13px] font-bold shadow-sm transition-colors"
         >
-          Speak with agent
+          Speak with Mira
         </button>
       </div>
 

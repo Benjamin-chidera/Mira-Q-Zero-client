@@ -11,7 +11,8 @@ function encodeToWAV(audioBuffer: AudioBuffer): Blob {
   const view = new DataView(buffer);
 
   function writeString(offset: number, str: string) {
-    for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
+    for (let i = 0; i < str.length; i++)
+      view.setUint8(offset + i, str.charCodeAt(i));
   }
 
   writeString(0, "RIFF");
@@ -86,7 +87,7 @@ export function VoiceAgentModal({
     practitioner_name: string;
     reference_number: string;
   } | null>(null);
-  
+
   // Web Audio API refs — avoid blob URLs which Brave blocks in non-gesture contexts
   const audioContextRef = useRef<AudioContext | null>(null);
   const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
@@ -98,6 +99,10 @@ export function VoiceAgentModal({
   const transcriptRef = useRef<string>("");
   const isMutedRef = useRef<boolean>(false);
   const stopListeningRef = useRef<() => void>(() => {});
+  const speakRef = useRef<(text: string, onDone?: () => void) => void>(
+    () => {},
+  );
+  const startListeningRef = useRef<() => void>(() => {});
 
   // Add new references for media recording
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -110,70 +115,80 @@ export function VoiceAgentModal({
 
   // Speak function using Web Audio API — avoids blob URLs that Brave blocks in non-gesture contexts
   // Uses a persistent Socket.IO connection for faster real-time TTS generation
-  const speak = useCallback(async (text: string, onDone?: () => void) => {
-    if (isMutedRef.current) {
-      onDone?.();
-      return;
-    }
-
-    // Stop any currently playing audio
-    try { audioSourceRef.current?.stop(); } catch {}
-    audioSourceRef.current = null;
-
-    let onendHandled = false;
-    const handleDone = () => {
-      if (!onendHandled) {
-        onendHandled = true;
+  const speak = useCallback(
+    async (text: string, onDone?: () => void) => {
+      if (isMutedRef.current) {
         onDone?.();
-      }
-    };
-
-    try {
-      if (!socketRef.current) {
-        throw new Error("Socket.IO client not connected");
+        return;
       }
 
-      // Emit the 'tts' event to get raw audio binary bytes directly in callback
-      socketRef.current.emit(
-        "tts",
-        {
-          text,
-          practitioner_name: practitionerName || "GP Team",
-        },
-        async (audioBufferData: ArrayBuffer | { error: string }) => {
-          try {
-            if (audioBufferData && "error" in audioBufferData) {
-              throw new Error((audioBufferData as any).error);
-            }
+      // Stop any currently playing audio
+      try {
+        audioSourceRef.current?.stop();
+      } catch {}
+      audioSourceRef.current = null;
 
-            if (!audioBufferData) {
-              throw new Error("Received empty audio data");
-            }
-
-            if (!audioContextRef.current || audioContextRef.current.state === "closed") {
-              audioContextRef.current = new AudioContext();
-            }
-            const ctx = audioContextRef.current;
-            await ctx.resume();
-
-            const audioBuffer = await ctx.decodeAudioData(audioBufferData as ArrayBuffer);
-            const source = ctx.createBufferSource();
-            source.buffer = audioBuffer;
-            source.connect(ctx.destination);
-            audioSourceRef.current = source;
-            source.onended = handleDone;
-            source.start();
-          } catch (err) {
-            console.warn("TTS decode or playback error:", err);
-            handleDone();
-          }
+      let onendHandled = false;
+      const handleDone = () => {
+        if (!onendHandled) {
+          onendHandled = true;
+          onDone?.();
         }
-      );
-    } catch (error) {
-      console.warn("TTS Socket.IO error:", error);
-      handleDone();
-    }
-  }, [practitionerName]);
+      };
+
+      try {
+        if (!socketRef.current) {
+          throw new Error("Socket.IO client not connected");
+        }
+
+        // Emit the 'tts' event to get raw audio binary bytes directly in callback
+        socketRef.current.emit(
+          "tts",
+          {
+            text,
+            practitioner_name: practitionerName || "GP Team",
+          },
+          async (audioBufferData: ArrayBuffer | { error: string }) => {
+            try {
+              if (audioBufferData && "error" in audioBufferData) {
+                throw new Error((audioBufferData as any).error);
+              }
+
+              if (!audioBufferData) {
+                throw new Error("Received empty audio data");
+              }
+
+              if (
+                !audioContextRef.current ||
+                audioContextRef.current.state === "closed"
+              ) {
+                audioContextRef.current = new AudioContext();
+              }
+              const ctx = audioContextRef.current;
+              await ctx.resume();
+
+              const audioBuffer = await ctx.decodeAudioData(
+                audioBufferData as ArrayBuffer,
+              );
+              const source = ctx.createBufferSource();
+              source.buffer = audioBuffer;
+              source.connect(ctx.destination);
+              audioSourceRef.current = source;
+              source.onended = handleDone;
+              source.start();
+            } catch (err) {
+              console.warn("TTS decode or playback error:", err);
+              handleDone();
+            }
+          },
+        );
+      } catch (error) {
+        console.warn("TTS Socket.IO error:", error);
+        handleDone();
+      }
+    },
+    [practitionerName],
+  );
 
   // Initializes MediaRecorder and starts capturing voice live
   const startListening = useCallback(async () => {
@@ -201,13 +216,18 @@ export function VoiceAgentModal({
 
   // Stops voice recording and starts the transcription processing fallback phase
   const stopListening = useCallback(() => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+    if (
+      mediaRecorderRef.current &&
+      mediaRecorderRef.current.state !== "inactive"
+    ) {
       setStatus("processing");
-      
+
       mediaRecorderRef.current.onstop = async () => {
         console.log("[VoiceAgent] Stopped listening. Uploading to STT...");
 
-        const webmBlob = new Blob(audioChunksRef.current, { type: "audio/webm" });
+        const webmBlob = new Blob(audioChunksRef.current, {
+          type: "audio/webm",
+        });
         audioChunksRef.current = [];
 
         // Decode the WebM/Opus blob via AudioContext then re-encode as WAV.
@@ -230,11 +250,15 @@ export function VoiceAgentModal({
             throw new Error("Socket.IO client not connected");
           }
 
+          // Convert Blob to ArrayBuffer so Socket.IO sends raw binary bytes
+          // (Blob objects don't serialize correctly over Socket.IO to Python)
+          const audioArrayBuffer = await uploadBlob.arrayBuffer();
+
           // Emit 'stt' event with binary audio data directly
           socketRef.current.emit(
             "stt",
             {
-              audio: uploadBlob,
+              audio: audioArrayBuffer,
               filename: uploadFilename,
             },
             (response: any) => {
@@ -268,7 +292,7 @@ export function VoiceAgentModal({
                 setAgentMessage(retryMsg);
                 speak(retryMsg, startListening);
               }
-            }
+            },
           );
         } catch (error) {
           console.error("STT Socket.IO emit error:", error);
@@ -281,19 +305,30 @@ export function VoiceAgentModal({
 
       // Stop recording and close the tracks
       mediaRecorderRef.current.stop();
-      mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+      mediaRecorderRef.current.stream
+        .getTracks()
+        .forEach((track) => track.stop());
     } else {
-        const firstName = bookingData.patientName.split(" ")[0];
-        const retryMsg = `I didn't catch that, ${firstName}. Please try describing what's been bothering you again.`;
-        setAgentMessage(retryMsg);
-        speak(retryMsg, startListening);
+      const firstName = bookingData.patientName.split(" ")[0];
+      const retryMsg = `I didn't catch that, ${firstName}. Please try describing what's been bothering you again.`;
+      setAgentMessage(retryMsg);
+      speak(retryMsg, startListening);
     }
   }, [bookingData.patientName, speak, startListening]);
 
-  // Keep stopListeningRef synchronized to prevent mutual recursion dependency loops
+  // Keep refs synchronized to prevent stale closures and avoid
+  // putting callbacks in the main useEffect dependency array
   useEffect(() => {
     stopListeningRef.current = stopListening;
   }, [stopListening]);
+
+  useEffect(() => {
+    speakRef.current = speak;
+  }, [speak]);
+
+  useEffect(() => {
+    startListeningRef.current = startListening;
+  }, [startListening]);
 
   // Submits the finalized booking with captured symptoms
   const handleConfirm = useCallback(async () => {
@@ -349,11 +384,18 @@ export function VoiceAgentModal({
   // Start the entire voice onboarding flow when modal is triggered open
   useEffect(() => {
     if (!open) {
-      try { audioSourceRef.current?.stop(); } catch {}
+      try {
+        audioSourceRef.current?.stop();
+      } catch {}
       audioSourceRef.current = null;
-      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      if (
+        mediaRecorderRef.current &&
+        mediaRecorderRef.current.state !== "inactive"
+      ) {
         mediaRecorderRef.current.stop();
-        mediaRecorderRef.current.stream.getTracks().forEach(track => track.stop());
+        mediaRecorderRef.current.stream
+          .getTracks()
+          .forEach((track) => track.stop());
       }
       // Disconnect Socket.IO when modal is closed to free up resources
       if (socketRef.current) {
@@ -369,7 +411,10 @@ export function VoiceAgentModal({
     });
 
     socketRef.current.on("connect", () => {
-      console.log("[Socket.IO] Connected to voice server:", socketRef.current?.id);
+      console.log(
+        "[Socket.IO] Connected to voice server:",
+        socketRef.current?.id,
+      );
     });
 
     socketRef.current.on("disconnect", () => {
@@ -390,7 +435,10 @@ export function VoiceAgentModal({
     setAgentMessage(greeting);
 
     // Safety timeout ensures speech synthesis engine gets initialized on mounting the modal
-    const timer = setTimeout(() => speak(greeting, startListening), 400);
+    // Use refs so the socket lifecycle is NOT tied to speak/startListening identity
+    const timer = setTimeout(() => {
+      speakRef.current(greeting, () => startListeningRef.current());
+    }, 400);
     return () => {
       clearTimeout(timer);
       if (socketRef.current) {
@@ -398,19 +446,25 @@ export function VoiceAgentModal({
         socketRef.current = null;
       }
     };
-  }, [open, gpName, bookingData.patientName, speak, startListening]);
+  }, [open, gpName, bookingData.patientName]);
 
   // Handles hardware microphone status changes and updates recognition state
   const handleToggleMute = useCallback(() => {
     const newMuteState = !isMutedRef.current;
     isMutedRef.current = newMuteState;
     setIsMuted(newMuteState);
-    
+
     if (newMuteState) {
-      try { audioSourceRef.current?.stop(); } catch {}
+      try {
+        audioSourceRef.current?.stop();
+      } catch {}
       audioSourceRef.current = null;
     } else {
-      if (status === "listening" && (!mediaRecorderRef.current || mediaRecorderRef.current.state === "inactive")) {
+      if (
+        status === "listening" &&
+        (!mediaRecorderRef.current ||
+          mediaRecorderRef.current.state === "inactive")
+      ) {
         startListening();
       }
     }
@@ -431,15 +485,19 @@ export function VoiceAgentModal({
             <h2 className="text-white font-bold text-sm tracking-wide">
               GP Connect Assistant
             </h2>
-            <p className="text-blue-100/90 text-xs mt-0.5 font-medium">{gpName}</p>
+            <p className="text-blue-100/90 text-xs mt-0.5 font-medium">
+              {gpName}
+            </p>
           </div>
           <div className="flex items-center gap-2 bg-black/25 px-3 py-1 rounded-full border border-white/5">
             <span
               className={cn("w-2 h-2 rounded-full", {
-                "bg-red-500 animate-pulse shadow-[0_0_8px_#ef4444]": status === "listening",
+                "bg-red-500 animate-pulse shadow-[0_0_8px_#ef4444]":
+                  status === "listening",
                 "bg-amber-400 animate-pulse shadow-[0_0_8px_#fbbf24]":
                   status === "processing" || status === "sending",
-                "bg-blue-400 animate-pulse shadow-[0_0_8px_#60a5fa]": isAgentSpeaking,
+                "bg-blue-400 animate-pulse shadow-[0_0_8px_#60a5fa]":
+                  isAgentSpeaking,
                 "bg-green-500 shadow-[0_0_8px_#22c55e]": status === "sent",
               })}
             />
@@ -447,10 +505,10 @@ export function VoiceAgentModal({
               {status === "listening"
                 ? "Listening"
                 : status === "processing" || status === "sending"
-                ? "Processing"
-                : status === "sent"
-                ? "Complete"
-                : "Speaking"}
+                  ? "Processing"
+                  : status === "sent"
+                    ? "Complete"
+                    : "Speaking"}
             </span>
           </div>
         </div>
@@ -484,7 +542,7 @@ export function VoiceAgentModal({
                   "border-gray-600": status === "processing" || isMuted,
                   "border-green-500 shadow-[0_0_24px_rgba(34,197,94,0.4)]":
                     status === "sent",
-                }
+                },
               )}
             >
               <svg
@@ -501,7 +559,7 @@ export function VoiceAgentModal({
                 <path d="M19 10v2a7 7 0 0 1-14 0v-2H3v2a9 9 0 0 0 8 8.94V22H8v2h8v-2h-3v-1.06A9 9 0 0 0 21 12v-2h-2z" />
               </svg>
             </div>
-            
+
             {status === "listening" && isMuted && (
               <span className="absolute bottom-0 right-0 w-8 h-8 bg-red-600 rounded-full flex items-center justify-center animate-pulse border-2 border-[#1E293B] z-20 shadow-md">
                 <MicOff className="w-4 h-4 text-white" />
@@ -587,13 +645,15 @@ export function VoiceAgentModal({
               status === "confirming") && (
               <div className="bg-[#0F172A]/90 backdrop-blur-md border border-[#334155] rounded-2xl rounded-tr-sm px-5 py-4 w-full shadow-lg relative overflow-hidden transition-all duration-300 animate-in fade-in slide-in-from-bottom-2">
                 {/* Visual live glow line */}
-                <div className={cn(
-                  "absolute top-0 left-0 w-full h-[2px] animate-pulse",
-                  status === "listening" && !isMuted 
-                    ? "bg-linear-to-r from-red-500/20 via-red-500 to-red-500/20"
-                    : "bg-linear-to-r from-blue-500/20 via-blue-500 to-blue-500/20"
-                )} />
-                
+                <div
+                  className={cn(
+                    "absolute top-0 left-0 w-full h-[2px] animate-pulse",
+                    status === "listening" && !isMuted
+                      ? "bg-linear-to-r from-red-500/20 via-red-500 to-red-500/20"
+                      : "bg-linear-to-r from-blue-500/20 via-blue-500 to-blue-500/20",
+                  )}
+                />
+
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider select-none">
                     {firstName}'s Response
@@ -610,14 +670,16 @@ export function VoiceAgentModal({
                     </div>
                   )}
                 </div>
-                
+
                 <div className="text-white text-[14px] leading-relaxed max-h-32 overflow-y-auto pr-1 select-text">
                   {transcript ? (
                     <span className="text-slate-100">{transcript}</span>
                   ) : null}
                   {!transcript && (
                     <span className="text-gray-500 italic animate-pulse font-medium">
-                      {isMuted ? "Microphone is muted. Click 'Unmute' to speak." : "Listening... Describe what is bothering you."}
+                      {isMuted
+                        ? "Microphone is muted. Click 'Unmute' to speak."
+                        : "Listening... Describe what is bothering you."}
                     </span>
                   )}
                 </div>
@@ -642,14 +704,20 @@ export function VoiceAgentModal({
           {/* Sent success state */}
           {status === "sent" && (
             <div className="flex flex-col items-center gap-4 py-3 text-center w-full">
-              <div className={cn(
-                "p-3 rounded-full flex items-center justify-center",
-                alreadyBookedInfo ? "bg-amber-500/10 border border-amber-500/20" : "bg-green-500/10 border border-green-500/20"
-              )}>
+              <div
+                className={cn(
+                  "p-3 rounded-full flex items-center justify-center",
+                  alreadyBookedInfo
+                    ? "bg-amber-500/10 border border-amber-500/20"
+                    : "bg-green-500/10 border border-green-500/20",
+                )}
+              >
                 <CheckCircle2
                   className={cn(
                     "w-12 h-12",
-                    alreadyBookedInfo ? "text-amber-400 animate-bounce" : "text-green-400 animate-bounce",
+                    alreadyBookedInfo
+                      ? "text-amber-400 animate-bounce"
+                      : "text-green-400 animate-bounce",
                   )}
                 />
               </div>
@@ -672,7 +740,9 @@ export function VoiceAgentModal({
                       {alreadyBookedInfo.date} at {alreadyBookedInfo.time}
                     </p>
                     <div className="mt-3 flex items-center justify-between bg-black/25 px-3 py-2 rounded-lg border border-white/5">
-                      <span className="text-[10px] text-gray-400 uppercase font-bold">Reference</span>
+                      <span className="text-[10px] text-gray-400 uppercase font-bold">
+                        Reference
+                      </span>
                       <span className="text-amber-300 font-bold text-sm font-mono tracking-wider">
                         {alreadyBookedInfo.reference_number}
                       </span>
@@ -748,7 +818,7 @@ export function VoiceAgentModal({
                   "flex items-center gap-2 text-xs font-bold uppercase tracking-wider px-4 py-2 rounded-lg transition-colors border shadow-sm",
                   isMuted
                     ? "text-red-400 bg-red-400/10 border-red-500/20 hover:bg-red-400/20"
-                    : "text-slate-400 bg-slate-800/50 border-white/5 hover:text-white hover:bg-slate-700/50"
+                    : "text-slate-400 bg-slate-800/50 border-white/5 hover:text-white hover:bg-slate-700/50",
                 )}
               >
                 {isMuted ? (

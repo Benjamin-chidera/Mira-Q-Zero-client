@@ -91,7 +91,7 @@ export function ResearchCardMenu({ researchId, researchTitle }: ResearchCardMenu
         <div
           ref={menuRef}
           style={{ position: 'fixed', top: menuPosition.top, right: menuPosition.right }}
-          className="z-[200] w-[210px] bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden"
+          className="z-200 w-[210px] bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {menuItems.map((item) => {

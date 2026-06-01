@@ -40,6 +40,8 @@ const Sidebar = () => {
     openVoiceAgent,
     verifiedNhsNumber,
     verifiedPatientName,
+    verifiedPatientEmail,
+    verifiedPatientPhone,
     selectedSlot,
   } = useConnectStore();
   const [postCode, setPostCode] = useState("");
@@ -213,8 +215,8 @@ const Sidebar = () => {
         onClose={() => setOpenVoiceAgent(false)}
         bookingData={{
           patientName: verifiedPatientName,
-          email: "",
-          phone: "",
+          email: verifiedPatientEmail,
+          phone: verifiedPatientPhone,
         }}
         gpName={selectedGp?.name ?? "your GP"}
         odsCode={selectedGp?.odsCode ?? ""}

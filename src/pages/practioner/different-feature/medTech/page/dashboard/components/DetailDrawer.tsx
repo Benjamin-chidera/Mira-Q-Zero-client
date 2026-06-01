@@ -1,4 +1,4 @@
-import { X, FileText, AlertCircle, Search, Image as ImageIcon, Link as LinkIcon } from 'lucide-react';
+import { X, FileText, AlertCircle, Search, Image as ImageIcon, Link as LinkIcon, Mic } from 'lucide-react';
 import { usePatientStore } from '@/store/medTech/patient.store';
 
 interface DetailDrawerProps {
@@ -7,6 +7,7 @@ interface DetailDrawerProps {
   activeView: 'patients' | 'agent' | 'research' | 'cases';
   selectedResearchItem: any;
   selectedPatient: any;
+  setIsCallDialogOpen: (open: boolean) => void;
 }
 
 export function DetailDrawer({
@@ -14,7 +15,8 @@ export function DetailDrawer({
   setShowDetail,
   activeView,
   selectedResearchItem,
-  selectedPatient
+  selectedPatient,
+  setIsCallDialogOpen
 }: DetailDrawerProps) {
   const { isHydrating, activePatientData, hydrationError } = usePatientStore();
 
@@ -180,13 +182,22 @@ export function DetailDrawer({
        {/* Persistent Dock - AI Medical Summarizer */}
        {activeView === 'patients' && selectedPatient && activePatientData && (
           <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-5 shadow-[0_-10px_30px_rgba(0,0,0,0.08)] z-30">
-             <h4 className="text-[11px] font-bold text-[#005EB8] uppercase tracking-wider mb-3 flex items-center gap-2">
-                <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#005EB8] opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#005EB8]"></span>
-                </span>
-                AI Medical Summarizer
-             </h4>
+             <div className="flex justify-between items-center mb-3">
+                <h4 className="text-[11px] font-bold text-[#005EB8] uppercase tracking-wider flex items-center gap-2">
+                   <span className="relative flex h-2 w-2">
+                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#005EB8] opacity-75"></span>
+                     <span className="relative inline-flex rounded-full h-2 w-2 bg-[#005EB8]"></span>
+                   </span>
+                   AI Medical Summarizer
+                </h4>
+                <button 
+                   onClick={() => setIsCallDialogOpen(true)}
+                   className="bg-[#005EB8] hover:bg-[#004A99] text-white px-3.5 py-1.5 rounded-full text-[11px] font-bold shadow-sm transition-all hover:scale-105 flex items-center gap-1.5"
+                >
+                   <Mic className="w-3.5 h-3.5" />
+                   Speak with Mira
+                </button>
+             </div>
              <ul className="space-y-2">
                 <li className="text-[13px] text-gray-700 font-medium leading-relaxed flex items-start gap-2">
                    <span className="text-[#005EB8] mt-0.5">•</span>
@@ -198,6 +209,17 @@ export function DetailDrawer({
                 </li>
              </ul>
           </div>
+       )}
+
+       {/* Floating action button - Speak with Mira (Only shown when the dock is NOT visible) */}
+       {!(activeView === 'patients' && selectedPatient && activePatientData) && (
+          <button 
+             onClick={() => setIsCallDialogOpen(true)}
+             className="absolute bottom-6 right-6 bg-[#005EB8] hover:bg-[#004A99] text-white px-5 py-2.5 rounded-full text-[13px] font-bold shadow-lg hover:shadow-xl transition-all hover:scale-105 z-50 flex items-center gap-2"
+          >
+             <Mic className="w-4 h-4" />
+             Speak with Mira
+          </button>
        )}
     </div>
   );
