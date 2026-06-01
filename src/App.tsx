@@ -2,7 +2,7 @@ import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import FindAndConnect from "./pages/user/find_and_connect/page";
 import { PractitionerConsultationPage } from "./pages/practioner/Consultation/page";
-import MedTechDashboard from "./pages/practioner/different-feature/medTech/page/dashboard/page";
+import MedTechDashboard from "./pages/practioner/different-feature/mira/page/dashboard/page";
 import FeatureSwitch from "./components/FeatureSwitch/Page-feature-Switch";
 import LoginPage from "./pages/auth/LoginPage";
 import ProtectedRoute from "./components/ProtectedRoute";
