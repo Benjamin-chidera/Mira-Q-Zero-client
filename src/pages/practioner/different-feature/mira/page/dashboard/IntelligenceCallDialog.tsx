@@ -3,7 +3,6 @@ import {
   Phone,
   PhoneOff,
   MicOff,
-  Volume2,
   FileText,
   Link as LinkIcon,
   Image as ImageIcon,

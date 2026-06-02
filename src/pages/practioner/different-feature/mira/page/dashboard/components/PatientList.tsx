@@ -69,12 +69,12 @@ export function PatientList({ setSelectedPatient, setShowDetail }: PatientListPr
                     className={`bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col ${colors.border} transition-colors cursor-pointer group relative overflow-hidden`}
                   >
                      <div className={`absolute left-0 top-0 bottom-0 w-1 ${colors.bar}`}></div>
-                     <div className="flex justify-between items-start mb-4">
-                        <span className={`${colors.bg} ${colors.text} text-[9px] font-bold px-2 py-1 rounded uppercase tracking-wider`}>
-                           {patient.status}
-                        </span>
-                        <PatientCardMenu patientId={patient.id} patientName={patient.name} />
-                     </div>
+                      <div className="flex justify-between items-start mb-4">
+                         <span className={`${colors.bg} ${colors.text} text-[9px] font-bold px-2 py-1 rounded uppercase tracking-wider`}>
+                            {patient.status}
+                         </span>
+                         <PatientCardMenu patient={patient} />
+                      </div>
                      <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 rounded-full bg-[#005EB8] text-white flex items-center justify-center font-bold shadow-sm">
                           {initials}
