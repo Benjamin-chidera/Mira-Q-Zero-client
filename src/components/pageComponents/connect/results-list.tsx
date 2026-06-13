@@ -13,27 +13,29 @@ const ResultsList = () => {
     setOpenBookingModal(true);
   };
 
-  if (filteredGps.length === 0) {
-    return (
-      <div className="absolute top-8 right-8 z-10 w-96 bg-white p-4 rounded-xl shadow-lg border border-gray-100">
-        <p className="text-gray-500 text-center">No GPs found within {radius} miles.</p>
-      </div>
-    );
-  }
+  // if (filteredGps.length === 0) {
+  //   return (
+  //     <div className="absolute bottom-24 md:top-8 md:bottom-auto left-4 right-4 md:left-auto md:right-8 z-10 w-auto md:w-96 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-gray-200/50">
+  //       <p className="text-gray-500 text-center text-sm font-medium">No GPs found within {radius} miles.</p>
+  //     </div>
+  //   );
+  // }
 
-  console.log(filteredGps);
+  // console.log(filteredGps);
   
 
   return (
-    <div className="absolute top-8 right-8 z-10 w-[420px] max-h-[calc(100vh-64px)] overflow-y-auto flex flex-col gap-5 pr-4 pb-8 custom-scrollbar">
-      <div className="bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-sm border border-white/20 mb-1">
-        <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-          Nearby Practices
-          <span className="bg-[#005EB8] text-white text-[10px] px-2 py-0.5 rounded-full font-bold">
-            {filteredGps.length}
-          </span>
-        </h2>
-      </div>
+    <div className="absolute bottom-24 md:top-8 md:bottom-auto left-4 right-4 md:left-auto md:right-8 z-10 w-auto md:w-105 max-h-[55vh] md:max-h-[calc(100vh-4rem)] overflow-y-auto flex flex-col gap-3 md:gap-5 pr-1 md:pr-4 pb-4 md:pb-8 custom-scrollbar">
+      {filteredGps.length > 0 && (
+        <div className="bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-sm border border-white/20 mb-1">
+          <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+            Nearby Practices
+            <span className="bg-[#005EB8] text-white text-[0.625rem] px-2 py-0.5 rounded-full font-bold">
+              {filteredGps.length}
+            </span>
+          </h2>
+        </div>
+      )}
       {filteredGps.map((result) => (
         <ResultCard
           key={result.odsCode}

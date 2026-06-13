@@ -9,6 +9,7 @@ export interface Patient {
   dateOfBirth?: string;
   status: string;
   reason: string;
+  doctorName?: string;
 }
 
 interface PatientStore {
@@ -18,7 +19,7 @@ interface PatientStore {
   activePatientData: any | null;
   isHydrating: boolean;
   hydrationError: string | null;
-  fetchPatients: (odsCode: string) => Promise<void>;
+  fetchPatients: (odsCode: string, doctorId?: number | string) => Promise<void>;
   hydratePatient: (nhsNumber: string) => Promise<void>;
   updatePatientDetails: (patientId: number | string, details: Partial<Patient>) => Promise<void>;
 }
@@ -31,10 +32,14 @@ export const usePatientStore = create<PatientStore>((set) => ({
   isHydrating: false,
   hydrationError: null,
 
-  fetchPatients: async (odsCode: string) => {
+  fetchPatients: async (odsCode: string, doctorId?: number | string) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await fetch(`http://localhost:8000/medTech/patients?ods_code=${odsCode}`);
+      let url = `http://${window.location.hostname}:8000/medTech/patients?ods_code=${odsCode}`;
+      if (doctorId !== undefined && doctorId !== null) {
+        url += `&doctor_id=${doctorId}`;
+      }
+      const response = await fetch(url);
       
       if (!response.ok) {
         const errData = await response.json().catch(() => null);
@@ -52,8 +57,8 @@ export const usePatientStore = create<PatientStore>((set) => ({
     set({ isHydrating: true, hydrationError: null, activePatientData: null });
     try {
       const [scrRes, nrlRes] = await Promise.all([
-        fetch(`http://localhost:8000/medTech/clinical/${nhsNumber}/scr`),
-        fetch(`http://localhost:8000/medTech/clinical/${nhsNumber}/nrl`)
+        fetch(`http://${window.location.hostname}:8000/medTech/clinical/${nhsNumber}/scr`),
+        fetch(`http://${window.location.hostname}:8000/medTech/clinical/${nhsNumber}/nrl`)
       ]);
 
       if (!scrRes.ok || !nrlRes.ok) {
@@ -85,7 +90,7 @@ export const usePatientStore = create<PatientStore>((set) => ({
       if (details.age !== undefined) payload.age = details.age;
       if (details.dateOfBirth !== undefined) payload.date_of_birth = details.dateOfBirth;
 
-      const response = await fetch(`http://localhost:8000/medTech/patients/${patientId}`, {
+      const response = await fetch(`http://${window.location.hostname}:8000/medTech/patients/${patientId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'

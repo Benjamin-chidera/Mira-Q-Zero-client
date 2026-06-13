@@ -1,10 +1,11 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Star, Navigation, Phone, Clock } from "lucide-react";
 import {
   Map as GoogleMap,
   AdvancedMarker,
   Pin,
   InfoWindow,
+  useMap,
 } from "@vis.gl/react-google-maps";
 import ResultsList from "./results-list";
 import useConnectStore from "@/store/connect.store";
@@ -18,6 +19,22 @@ const ConnectMap = () => {
   const [selectedMarkerId, setSelectedMarkerId] = useState<string | null>(null);
 
   const filteredGps = gps.filter((gp) => gp.distance <= radius);
+
+  const map = useMap("gp-connect-map");
+
+  useEffect(() => {
+    // @ts-expect-error - google is loaded via external script
+    if (!map || filteredGps.length === 0 || !window.google) return;
+
+    // @ts-expect-error - google is loaded via external script
+    const bounds = new window.google.maps.LatLngBounds();
+    filteredGps.forEach((gp) => {
+      bounds.extend({ lat: gp.lat, lng: gp.lng });
+    });
+
+    // Add padding to ensure markers aren't hidden behind the results list overlay
+    map.fitBounds(bounds, { top: 50, bottom: 50, left: 50, right: 450 });
+  }, [map, filteredGps]);
 
   // Find the currently selected marker's data
   const selectedMarker = filteredGps.find(
@@ -42,7 +59,7 @@ const ConnectMap = () => {
   return (
     <div className="flex-1 relative">
       <GoogleMap
-        center={center}
+        defaultCenter={center}
         defaultZoom={DEFAULT_ZOOM}
         mapId="gp-connect-map"
         gestureHandling="greedy"
@@ -73,18 +90,18 @@ const ConnectMap = () => {
             onCloseClick={handleInfoWindowClose}
             pixelOffset={[0, -40]}
           >
-            <div className="p-4 min-w-[280px] max-w-[320px] bg-white rounded-lg">
+            <div className="p-4 min-w-[17.5rem] max-w-[20rem] bg-white rounded-lg">
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-bold text-gray-900 text-base leading-tight">
                   {selectedMarker.name}
                 </h3>
                 <div className="flex items-center gap-1 bg-blue-50 px-2 py-0.5 rounded-full shrink-0 ml-2">
                   <Star className="w-3 h-3 fill-[#005EB8] text-[#005EB8]" />
-                  <span className="text-[10px] font-bold text-[#005EB8]">4.5</span>
+                  <span className="text-[0.625rem] font-bold text-[#005EB8]">4.5</span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-3 text-[11px] text-gray-500 mb-3">
+              <div className="flex items-center gap-3 text-[0.6875rem] text-gray-500 mb-3">
                 <div className="flex items-center gap-1">
                   <Navigation className="w-3 h-3 rotate-45" />
                   <span>{selectedMarker.distance.toFixed(1)} mi</span>
@@ -101,7 +118,7 @@ const ConnectMap = () => {
                 selectedMarker.matchStatus === "Different Date" ? "bg-indigo-50 border-indigo-100" :
                 "bg-rose-50 border-rose-100"
               }`}>
-                <div className="text-[9px] font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
+                <div className="text-[0.5625rem] font-bold uppercase tracking-wider mb-1 flex items-center gap-1">
                   <Clock className="w-2.5 h-2.5" />
                   {selectedMarker.matchStatus || "Availability"}
                 </div>

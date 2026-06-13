@@ -71,9 +71,9 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
 
   if (isLoadingOperativeNotes) {
     return (
-      <div className="flex-1 h-full flex flex-col items-center justify-center text-slate-400 animate-pulse min-h-[300px]">
+      <div className="flex-1 h-full flex flex-col items-center justify-center text-slate-400 animate-pulse min-h-[18.75rem]">
         <Loader2 className="w-8 h-8 animate-spin text-[#005EB8] mb-2" />
-        <span className="text-[13px] font-medium">
+        <span className="text-[0.8125rem] font-medium">
           Loading clinical records...
         </span>
       </div>
@@ -85,20 +85,20 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
       {/* List view */}
       <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
         {operativeNotesError && (
-          <div className="bg-red-50 text-red-600 p-4 border border-red-100 rounded-xl text-[13px] font-semibold flex items-center gap-2">
+          <div className="bg-red-50 text-red-600 p-4 border border-red-100 rounded-xl text-[0.8125rem] font-semibold flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             {operativeNotesError}
           </div>
         )}
 
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+        <span className="text-[0.625rem] font-bold text-slate-400 uppercase tracking-widest mb-1">
           Surgical treatments log
         </span>
 
         {operativeNotes.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-slate-300 py-12">
             <Activity className="w-12 h-12 stroke-[1.5] mb-2" />
-            <span className="text-[13px] font-bold">
+            <span className="text-[0.8125rem] font-bold">
               No operative notes logged
             </span>
           </div>
@@ -110,19 +110,19 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
                 className="bg-slate-50 border border-slate-100 p-4 rounded-xl flex flex-col gap-2"
               >
                 <div className="flex justify-between items-start">
-                  <h4 className="font-bold text-[14px] text-slate-800">
+                  <h4 className="font-bold text-[0.875rem] text-slate-800">
                     {note.procedure_name}
                   </h4>
-                  <span className="bg-slate-200 text-slate-600 text-[10px] px-2 py-0.5 rounded font-semibold">
+                  <span className="bg-slate-200 text-slate-600 text-[0.625rem] px-2 py-0.5 rounded font-semibold">
                     {note.surgery_date}
                   </span>
                 </div>
-                <p className="text-[12px] text-slate-600 leading-relaxed">
+                <p className="text-[0.75rem] text-slate-600 leading-relaxed">
                   <strong className="text-slate-700">Performed:</strong>{" "}
                   {note.procedure_performed}
                 </p>
                 {note.pre_op_diagnosis && (
-                  <p className="text-[12px] text-slate-600 leading-relaxed">
+                  <p className="text-[0.75rem] text-slate-600 leading-relaxed">
                     <strong className="text-slate-700">
                       Pre-Op Diagnosis:
                     </strong>{" "}
@@ -130,7 +130,7 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
                   </p>
                 )}
                 {note.post_op_diagnosis && (
-                  <p className="text-[12px] text-slate-600 leading-relaxed">
+                  <p className="text-[0.75rem] text-slate-600 leading-relaxed">
                     <strong className="text-slate-700">
                       Post-Op Diagnosis:
                     </strong>{" "}
@@ -138,18 +138,18 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
                   </p>
                 )}
                 {note.narrative_text && (
-                  <p className="text-[12px] text-slate-600 leading-relaxed whitespace-pre-wrap">
+                  <p className="text-[0.75rem] text-slate-600 leading-relaxed whitespace-pre-wrap">
                     <strong className="text-slate-700">Narrative:</strong>{" "}
                     {note.narrative_text}
                   </p>
                 )}
                 {note.post_op_instructions && (
-                  <p className="text-[12px] text-slate-600 leading-relaxed whitespace-pre-wrap">
+                  <p className="text-[0.75rem] text-slate-600 leading-relaxed whitespace-pre-wrap">
                     <strong className="text-slate-700">Instructions:</strong>{" "}
                     {note.post_op_instructions}
                   </p>
                 )}
-                <div className="flex justify-between items-center text-[10px] text-slate-400 mt-2 font-semibold">
+                <div className="flex justify-between items-center text-[0.625rem] text-slate-400 mt-2 font-semibold">
                   <span className="flex items-center gap-1">
                     <User className="w-3.5 h-3.5" /> Surgeon:{" "}
                     {note.surgeon_name || "Unknown"}
@@ -168,16 +168,16 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
       {/* Form view */}
       <form
         onSubmit={handleAddOperativeNote}
-        className="w-[360px] bg-slate-50/50 p-6 overflow-y-auto shrink-0 flex flex-col justify-between"
+        className="w-[22.5rem] bg-slate-50/50 p-6 overflow-y-auto shrink-0 flex flex-col justify-between"
       >
         <div className="flex flex-col gap-4">
-          <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <h3 className="text-[0.75rem] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
             <PlusCircle className="w-4 h-4 text-[#005EB8]" /> Add Operative Note
           </h3>
 
           <div className="grid grid-cols-2 gap-3">
             <div className="col-span-2 flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+              <label className="text-[0.625rem] font-bold text-gray-500 uppercase tracking-wider">
                 Procedure Name
               </label>
               <input
@@ -186,11 +186,11 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
                 value={opProcedureName}
                 onChange={(e) => setOpProcedureName(e.target.value)}
                 placeholder="e.g. Cholecystectomy"
-                className="px-3.5 py-2 text-[12px] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white"
+                className="px-3.5 py-2 text-[0.75rem] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white"
               />
             </div>
             <div className="col-span-2 flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+              <label className="text-[0.625rem] font-bold text-gray-500 uppercase tracking-wider">
                 Procedure Performed
               </label>
               <input
@@ -199,11 +199,11 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
                 value={opProcedurePerformed}
                 onChange={(e) => setOpProcedurePerformed(e.target.value)}
                 placeholder="e.g. Laparoscopic Cholecystectomy"
-                className="px-3.5 py-2 text-[12px] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white"
+                className="px-3.5 py-2 text-[0.75rem] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white"
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+              <label className="text-[0.625rem] font-bold text-gray-500 uppercase tracking-wider">
                 Surgeon Name
               </label>
               <input
@@ -212,11 +212,11 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
                 value={opSurgeonName}
                 onChange={(e) => setOpSurgeonName(e.target.value)}
                 placeholder="Dr. Edwards"
-                className="px-3.5 py-2 text-[12px] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white"
+                className="px-3.5 py-2 text-[0.75rem] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white"
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+              <label className="text-[0.625rem] font-bold text-gray-500 uppercase tracking-wider">
                 Surgery Date
               </label>
               <input
@@ -224,11 +224,11 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
                 required
                 value={opSurgeryDate}
                 onChange={(e) => setOpSurgeryDate(e.target.value)}
-                className="px-3.5 py-2 text-[12px] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white"
+                className="px-3.5 py-2 text-[0.75rem] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white"
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+              <label className="text-[0.625rem] font-bold text-gray-500 uppercase tracking-wider">
                 Pre-Op Diagnosis
               </label>
               <input
@@ -236,11 +236,11 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
                 value={opPreOpDiagnosis}
                 onChange={(e) => setOpPreOpDiagnosis(e.target.value)}
                 placeholder="Cholelithiasis"
-                className="px-3.5 py-2 text-[12px] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white"
+                className="px-3.5 py-2 text-[0.75rem] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white"
               />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+              <label className="text-[0.625rem] font-bold text-gray-500 uppercase tracking-wider">
                 Post-Op Diagnosis
               </label>
               <input
@@ -248,11 +248,11 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
                 value={opPostOpDiagnosis}
                 onChange={(e) => setOpPostOpDiagnosis(e.target.value)}
                 placeholder="Acute Cholecystitis"
-                className="px-3.5 py-2 text-[12px] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white"
+                className="px-3.5 py-2 text-[0.75rem] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white"
               />
             </div>
             <div className="col-span-2 flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+              <label className="text-[0.625rem] font-bold text-gray-500 uppercase tracking-wider">
                 Narrative Text
               </label>
               <textarea
@@ -260,11 +260,11 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
                 onChange={(e) => setOpNarrativeText(e.target.value)}
                 placeholder="Surgical steps detailed..."
                 rows={3}
-                className="px-3.5 py-2 text-[12px] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white resize-none"
+                className="px-3.5 py-2 text-[0.75rem] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white resize-none"
               />
             </div>
             <div className="col-span-2 flex flex-col gap-1">
-              <label className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
+              <label className="text-[0.625rem] font-bold text-gray-500 uppercase tracking-wider">
                 Post-Op Instructions
               </label>
               <textarea
@@ -272,7 +272,7 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
                 onChange={(e) => setOpPostOpInstructions(e.target.value)}
                 placeholder="Ward checks and post-op meds..."
                 rows={2}
-                className="px-3.5 py-2 text-[12px] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white resize-none"
+                className="px-3.5 py-2 text-[0.75rem] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white resize-none"
               />
             </div>
           </div>
@@ -281,7 +281,7 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
         <button
           type="submit"
           disabled={isSavingOperativeNote}
-          className="w-full mt-6 py-2.5 bg-[#005EB8] hover:bg-[#004A99] text-white font-bold text-[13px] rounded-xl shadow-md transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full mt-6 py-2.5 bg-[#005EB8] hover:bg-[#004A99] text-white font-bold text-[0.8125rem] rounded-xl shadow-md transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {isSavingOperativeNote && (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />

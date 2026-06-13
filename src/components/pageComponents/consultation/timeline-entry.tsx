@@ -21,7 +21,7 @@ const TimelineEntry = ({
       <div className="absolute left-0 top-6 w-2.5 h-2.5 rounded-full bg-[#005EB8] border-2 border-white ring-2 ring-[#005EB8]/30" />
 
       {/* Timeline vertical line */}
-      <div className="absolute left-[4px] top-10 bottom-0 w-0.5 bg-gray-200" />
+      <div className="absolute left-[0.25rem] top-10 bottom-0 w-0.5 bg-gray-200" />
 
       {/* Card */}
       <div className="bg-white rounded-xl border border-gray-200 p-5 shadow-sm max-w-screen">
@@ -47,7 +47,7 @@ const TimelineEntry = ({
 
         {/* Summary snippet */}
         <div className="border-l-3 border-[#005EB8]/30 bg-[#F5FAFF] rounded-r-lg px-4 py-3 mb-4">
-          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">
+          <p className="text-[0.625rem] font-bold text-gray-400 uppercase tracking-wider mb-1">
             Summary Snippet
           </p>
           <p className="text-sm text-gray-600 leading-relaxed">{summary}</p>

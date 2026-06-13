@@ -6,7 +6,7 @@ import { DashboardHeader } from './components/DashboardHeader';
 import { AIResearcher } from './components/AIResearcher';
 import { ResearchCenter } from './components/ResearchCenter';
 import { CaseHistory } from './components/CaseHistory';
-import { DetailDrawer } from './components/DetailDrawer';
+import { DetailDrawer } from './components/detail-drawer/DetailDrawer';
 import { IntelligenceCallDialog } from './IntelligenceCallDialog';
 
 export default function MedTechDashboard() {
@@ -51,11 +51,11 @@ export default function MedTechDashboard() {
          />
 
          {/* Main Content Area */}
-         <main className="flex-1 flex p-6 gap-6 overflow-hidden max-w-[1400px] w-full mx-auto relative">
+         <main className="flex-1 flex p-6 gap-6 overflow-hidden  w-full mx-auto relative">
         
             {/* View Switching */}
             {activeView === 'agent' && (
-               <AIResearcher setIsCallDialogOpen={setIsCallDialogOpen} />
+               <AIResearcher isCallDialogOpen={isCallDialogOpen} setIsCallDialogOpen={setIsCallDialogOpen} />
             )}
 
             {activeView === 'research' && (

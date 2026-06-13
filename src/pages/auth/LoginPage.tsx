@@ -42,7 +42,7 @@ const LoginPage = () => {
 
     setCheckingEmail(true);
     try {
-      const res = await axios.post("http://localhost:8000/auth/check-email", { email: email.trim().toLowerCase() });
+      const res = await axios.post(`http://${window.location.hostname}:8000/auth/check-email`, { email: email.trim().toLowerCase() });
       if (!res.data.exists) {
         setError("Email not found. Contact your administrator if you need an account.");
       } else {

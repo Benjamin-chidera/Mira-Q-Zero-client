@@ -13,19 +13,19 @@ export function CaseHistory({ caseMode, setCaseMode, caseFilter, setCaseFilter }
     <div className="flex-1 flex flex-col gap-6 overflow-y-auto pr-2 pb-4">
        <div className="flex items-center justify-between pt-2">
           <div className="flex flex-col gap-1">
-             <h2 className="text-[22px] font-bold text-gray-900 tracking-tight">Case History</h2>
-             <p className="text-[13px] text-gray-500 font-medium">Review outcomes of clinical and research cases</p>
+             <h2 className="text-[1.375rem] font-bold text-gray-900 tracking-tight">Case History</h2>
+             <p className="text-[0.8125rem] text-gray-500 font-medium">Review outcomes of clinical and research cases</p>
           </div>
           <div className="flex gap-2">
              <button 
                 onClick={() => setCaseMode('patient')}
-                className={`px-4 py-2 rounded-lg text-[13px] font-bold transition-colors ${caseMode === 'patient' ? 'bg-[#005EB8] text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
+                className={`px-4 py-2 rounded-lg text-[0.8125rem] font-bold transition-colors ${caseMode === 'patient' ? 'bg-[#005EB8] text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
              >
                 Patient Cases
              </button>
              <button 
                 onClick={() => setCaseMode('research')}
-                className={`px-4 py-2 rounded-lg text-[13px] font-bold transition-colors ${caseMode === 'research' ? 'bg-[#005EB8] text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
+                className={`px-4 py-2 rounded-lg text-[0.8125rem] font-bold transition-colors ${caseMode === 'research' ? 'bg-[#005EB8] text-white shadow-sm' : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'}`}
              >
                 Research Cases
              </button>
@@ -43,7 +43,7 @@ export function CaseHistory({ caseMode, setCaseMode, caseFilter, setCaseFilter }
             <button 
                key={f.id}
                onClick={() => setCaseFilter(f.id as any)}
-               className={`px-4 py-1.5 rounded-full text-[12px] font-bold transition-colors ${caseFilter === f.id ? 'bg-[#EFF6FF] text-[#005EB8] border border-[#BFDBFE]' : 'bg-white text-gray-500 border border-gray-100 hover:bg-gray-50'}`}
+               className={`px-4 py-1.5 rounded-full text-[0.75rem] font-bold transition-colors ${caseFilter === f.id ? 'bg-[#EFF6FF] text-[#005EB8] border border-[#BFDBFE]' : 'bg-white text-gray-500 border border-gray-100 hover:bg-gray-50'}`}
             >
                {f.label}
             </button>
@@ -59,11 +59,11 @@ export function CaseHistory({ caseMode, setCaseMode, caseFilter, setCaseFilter }
             ].filter(c => caseFilter === 'all' || c.status === caseFilter).map(c => (
               <div key={c.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-3 hover:shadow-md transition-all cursor-pointer">
                  <div className="flex justify-between items-start">
-                    <span className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider ${c.bg} ${c.color}`}>{c.label}</span>
+                    <span className={`text-[0.625rem] font-bold px-2 py-1 rounded uppercase tracking-wider ${c.bg} ${c.color}`}>{c.label}</span>
                     <c.icon className={`w-5 h-5 ${c.color}`} />
                  </div>
-                 <h3 className="font-bold text-gray-900 text-[15px]">{c.title}</h3>
-                 <p className="text-[12px] text-gray-500 line-clamp-2 leading-relaxed">{c.reason}</p>
+                 <h3 className="font-bold text-gray-900 text-[0.9375rem]">{c.title}</h3>
+                 <p className="text-[0.75rem] text-gray-500 line-clamp-2 leading-relaxed">{c.reason}</p>
               </div>
             ))
           ) : (
@@ -74,11 +74,11 @@ export function CaseHistory({ caseMode, setCaseMode, caseFilter, setCaseFilter }
             ].filter(c => caseFilter === 'all' || c.status === caseFilter).map(c => (
               <div key={c.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm flex flex-col gap-3 hover:shadow-md transition-all cursor-pointer">
                  <div className="flex justify-between items-start">
-                    <span className={`text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wider ${c.bg} ${c.color}`}>{c.label}</span>
+                    <span className={`text-[0.625rem] font-bold px-2 py-1 rounded uppercase tracking-wider ${c.bg} ${c.color}`}>{c.label}</span>
                     <c.icon className={`w-5 h-5 ${c.color}`} />
                  </div>
-                 <h3 className="font-bold text-gray-900 text-[15px]">{c.title}</h3>
-                 <p className="text-[12px] text-gray-500 line-clamp-2 leading-relaxed">{c.reason}</p>
+                 <h3 className="font-bold text-gray-900 text-[0.9375rem]">{c.title}</h3>
+                 <p className="text-[0.75rem] text-gray-500 line-clamp-2 leading-relaxed">{c.reason}</p>
               </div>
             ))
           )}

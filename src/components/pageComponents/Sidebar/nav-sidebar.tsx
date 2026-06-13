@@ -30,7 +30,7 @@ const NavSidebar = ({ activeItem = "consultation" }: NavSidebarProps) => {
   const navigate = useNavigate()
   
   return (
-    <aside className="w-48 border-r border-gray-200 bg-white flex flex-col h-full shrink-0">
+    <aside className="w-60 border-r border-gray-200 bg-white flex flex-col h-full shrink-0">
       {/* Patient Portal Header */}
       <div className="p-4 flex items-center gap-3">
         <div className="w-10 h-10 rounded-full bg-[#005EB8] flex items-center justify-center">

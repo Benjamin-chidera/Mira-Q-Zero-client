@@ -20,7 +20,7 @@ export const VoiceMode = ({ isOpen, onClose }: VoiceModeProps) => {
     <div className="fixed inset-0 z-100 bg-[#3E4852] flex flex-col items-center justify-between py-14 overflow-hidden font-sans animate-in fade-in zoom-in-95 duration-200">
       {/* Header */}
       <div className="text-center mt-6">
-        <h1 className="text-white text-[28px] font-semibold mb-2">
+        <h1 className="text-white text-[1.75rem] font-semibold mb-2">
           Clinical Intelligence Agent
         </h1>
         <p className="text-[#A2B8CB] text-sm font-medium tracking-wide">
@@ -31,24 +31,24 @@ export const VoiceMode = ({ isOpen, onClose }: VoiceModeProps) => {
       {/* Center Section */}
       <div className="flex flex-col items-center justify-center flex-1 w-full max-w-lg mt-10">
         {/* The glowing icon container */}
-        <div className="relative w-[320px] h-[320px] flex items-center justify-center">
+        <div className="relative w-[20rem] h-[20rem] flex items-center justify-center">
           {/* Outer faint border */}
-          <div className="absolute inset-0 border-[1.5px] border-[#55677A]/60 rounded-[2rem]"></div>
+          <div className="absolute inset-0 border-[0.09375rem] border-[#55677A]/60 rounded-[2rem]"></div>
 
           {/* Inner glowing square */}
-          <div className="w-[200px] h-[200px] rounded-[1.5rem] overflow-hidden flex items-center justify-center shadow-[0_0_90px_rgba(66,192,255,0.45)] bg-[#101A24] border border-[#42C0FF]/20 relative">
+          <div className="w-[12.5rem] h-[12.5rem] rounded-[1.5rem] overflow-hidden flex items-center justify-center shadow-[0_0_5.625rem_rgba(66,192,255,0.45)] bg-[#101A24] border border-[#42C0FF]/20 relative">
             <img
               src="/med-agent.png"
               alt="Medical AI Agent"
               className="w-full h-full object-cover"
             />
             {/* Inner glow effect over image */}
-            <div className="absolute inset-0 shadow-[inset_0_0_20px_rgba(66,192,255,0.4)] pointer-events-none"></div>
+            <div className="absolute inset-0 shadow-[inset_0_0_1.25rem_rgba(66,192,255,0.4)] pointer-events-none"></div>
           </div>
         </div>
 
         {/* Text */}
-        <p className="text-[#C1D2E1] text-center mt-8 max-w-sm text-[15px] leading-relaxed">
+        <p className="text-[#C1D2E1] text-center mt-8 max-w-sm text-[0.9375rem] leading-relaxed">
           "Analyzing local NHS Trust protocols for heart failure management..."
         </p>
       </div>
@@ -57,13 +57,13 @@ export const VoiceMode = ({ isOpen, onClose }: VoiceModeProps) => {
       <div className="flex flex-col items-center gap-8 mb-6 mt-8">
         {/* Attachment Options */}
         <div className="flex items-center gap-3 bg-white/5 rounded-full p-1.5 backdrop-blur-md border border-white/10 shadow-lg">
-          <button className="flex items-center gap-2 px-5 py-2.5 rounded-full hover:bg-white/10 transition-colors text-[11px] font-bold text-[#42C0FF] uppercase tracking-wider">
+          <button className="flex items-center gap-2 px-5 py-2.5 rounded-full hover:bg-white/10 transition-colors text-[0.6875rem] font-bold text-[#42C0FF] uppercase tracking-wider">
             <FileText className="w-4 h-4" /> PDF
           </button>
-          <button className="flex items-center gap-2 px-5 py-2.5 rounded-full hover:bg-white/10 transition-colors text-[11px] font-bold text-[#42C0FF] uppercase tracking-wider">
+          <button className="flex items-center gap-2 px-5 py-2.5 rounded-full hover:bg-white/10 transition-colors text-[0.6875rem] font-bold text-[#42C0FF] uppercase tracking-wider">
             <LinkIcon className="w-4 h-4" /> URL
           </button>
-          <button className="flex items-center gap-2 px-5 py-2.5 rounded-full hover:bg-white/10 transition-colors text-[11px] font-bold text-[#42C0FF] uppercase tracking-wider">
+          <button className="flex items-center gap-2 px-5 py-2.5 rounded-full hover:bg-white/10 transition-colors text-[0.6875rem] font-bold text-[#42C0FF] uppercase tracking-wider">
             <ImageIcon className="w-4 h-4" /> Image
           </button>
         </div>
@@ -71,14 +71,14 @@ export const VoiceMode = ({ isOpen, onClose }: VoiceModeProps) => {
         <div className="flex flex-col items-center gap-3">
           <button
             onClick={onClose}
-            className="w-[76px] h-[64px] bg-[#DA2D20] hover:bg-[#C0261A] rounded-[1.25rem] flex items-center justify-center shadow-lg transition-colors"
+            className="w-[4.75rem] h-[4rem] bg-[#DA2D20] hover:bg-[#C0261A] rounded-[1.25rem] flex items-center justify-center shadow-lg transition-colors"
           >
             <PhoneOff
-              className="w-[28px] h-[28px] text-white"
+              className="w-[1.75rem] h-[1.75rem] text-white"
               strokeWidth={2.5}
             />
           </button>
-          <span className="text-white text-[11px] font-bold tracking-widest uppercase">
+          <span className="text-white text-[0.6875rem] font-bold tracking-widest uppercase">
             End Call
           </span>
         </div>

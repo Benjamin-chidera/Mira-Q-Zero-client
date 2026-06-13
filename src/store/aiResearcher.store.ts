@@ -1,21 +1,22 @@
 import { create } from "zustand";
+import axios from "axios";
+import { io, Socket } from "socket.io-client";
+import useAuthStore from "./auth.store";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-// Supported attachment types the user can upload
 export type AttachmentType = "pdf" | "image" | "url";
 
-// A single attachment on a message (uploaded file or URL)
 export interface ChatAttachment {
   id: string;
   type: AttachmentType;
   name: string;
-  size: string; // Human-readable like "442 KB"
-  url: string; // Object URL for files, or the actual URL for links
-  file?: File; // The raw file (only for pdf/image, not url)
+  size: string;
+  url: string;
+  file?: File;
+  data?: string; // Base64 data (for backend sending)
 }
 
-// A source reference shown on agent responses (e.g. "NICE NG196")
 export interface ChatSource {
   id: string;
   label: string;
@@ -23,39 +24,62 @@ export interface ChatSource {
   url?: string;
 }
 
-// A single chat message
 export interface ChatMessage {
   id: string;
   role: "user" | "agent";
   content: string;
-  timestamp: string; // e.g. "14:02"
+  timestamp: string;
   isRead: boolean;
   attachments: ChatAttachment[];
-  sources: ChatSource[]; // Only agent messages will have sources
+  sources: ChatSource[];
 }
 
-// ─── Store ───────────────────────────────────────────────────────────────────
+export interface LookupConversation {
+  id: string;
+  title: string;
+  preview: string;
+  date: string;
+  timestamp: string;
+  type: "chat" | "call";
+  messages: ChatMessage[];
+}
+
+// ─── Store Interface ─────────────────────────────────────────────────────────
 
 interface AIResearcherStore {
-  messages: ChatMessage[];
-  pendingAttachments: ChatAttachment[]; // Files/URLs staged before sending
+  conversations: LookupConversation[];
+  activeConversationId: string | null;
+  pendingAttachments: ChatAttachment[];
   isLoading: boolean;
+  statusMessage: string;
+  socket: Socket | null;
+  isCallActive: boolean;
+  isVoiceProcessing: boolean;
 
   // Actions
-  addMessage: (message: ChatMessage) => void;
+  initializeSocket: () => void;
+  disconnectSocket: () => void;
+  fetchConversations: (practitionerId: number) => Promise<void>;
+  fetchMessages: (conversationId: string) => Promise<void>;
+  createConversation: (type: "chat" | "call", title?: string) => Promise<void>;
+  deleteConversation: (id: string) => Promise<void>;
+  setActiveConversationId: (id: string | null) => void;
   addPendingAttachment: (attachment: ChatAttachment) => void;
   removePendingAttachment: (id: string) => void;
   clearPendingAttachments: () => void;
-  setLoading: (loading: boolean) => void;
-  sendUserMessage: (content: string) => void;
+  sendUserMessage: (content: string) => Promise<void>;
+  startCallSession: (practitionerId: number) => Promise<void>;
+  endCallSession: () => void;
+  sendCallVoice: (base64Audio: string) => Promise<void>;
+  sendCallDocs: (attachments: any[]) => Promise<void>;
 }
 
-// Helper — generate a simple unique ID
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
 function generateId(): string {
   return Date.now().toString(36) + Math.random().toString(36).substring(2, 8);
 }
 
-// Helper — get current time formatted as HH:MM
 function getCurrentTime(): string {
   const now = new Date();
   const hours = now.getHours().toString().padStart(2, "0");
@@ -63,91 +87,288 @@ function getCurrentTime(): string {
   return `${hours}:${minutes}`;
 }
 
-// Helper — format file size to human-readable string
+function getFormattedDate(): string {
+  const now = new Date();
+  return now.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
 export function formatFileSize(bytes: number): string {
-  if (bytes < 1024) {
-    return `${bytes} B`;
-  }
-  if (bytes < 1024 * 1024) {
-    return `${(bytes / 1024).toFixed(0)} KB`;
-  }
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(0)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const result = reader.result as string;
+      const base64 = result.split(",")[1];
+      resolve(base64);
+    };
+    reader.onerror = (error) => reject(error);
+  });
+}
+
+// ─── Store Implementation ───────────────────────────────────────────────────
+
 export const useAIResearcherStore = create<AIResearcherStore>((set, get) => ({
-  // ── Initial State with demo messages matching the screenshot ──
-  messages: [
-    {
-      id: "demo-1",
-      role: "user",
-      content:
-        "What are the latest NICE guidelines for atrial fibrillation management in patients with CKD Stage 3?",
-      timestamp: "14:02",
-      isRead: true,
-      attachments: [],
-      sources: [],
-    },
-    {
-      id: "demo-2",
-      role: "agent",
-      content: `Based on **NICE Guideline NG196** and recent updates, the management of atrial fibrillation (AF) in patients with Chronic Kidney Disease (CKD) Stage 3 (GFR 30–59 ml/min) focus on anticoagulation and rate control:
-
-• **Anticoagulation:** DOACs (Apixaban, Edoxaban, Rivaroxaban) are generally preferred over VKAs. For CKD Stage 3, dose adjustments may be required depending on specific GFR calculations.
-
-• **Stroke Risk:** Use CHA2DS2-VASc score; CKD itself is a high-risk marker but not a direct component of the score.
-
-• **Rate Control:** Beta-blockers or rate-limiting calcium channel blockers remain first-line. Digoxin can be used but requires therapeutic drug monitoring due to reduced renal clearance.`,
-      timestamp: "14:03",
-      isRead: true,
-      attachments: [],
-      sources: [
-        { id: "s1", label: "NICE NG196", type: "pdf" },
-        { id: "s2", label: "ESC 2023 Guidelines", type: "pdf" },
-        { id: "s3", label: "Local CKD Protocol", type: "protocol" },
-      ],
-    },
-    {
-      id: "demo-3",
-      role: "user",
-      content:
-        "Based on these GFR trends, is the current Apixaban dose appropriate?",
-      timestamp: "14:08",
-      isRead: false,
-      attachments: [
-        {
-          id: "att-1",
-          type: "pdf",
-          name: "LAB_REPORT_P0042.pdf",
-          size: "442 KB",
-          url: "",
-        },
-      ],
-      sources: [],
-    },
-  ],
-
+  conversations: [],
+  activeConversationId: null,
   pendingAttachments: [],
   isLoading: false,
+  statusMessage: "",
+  socket: null,
+  isCallActive: false,
+  isVoiceProcessing: false,
 
-  // ── Actions ──
+  initializeSocket: () => {
+    let currentSocket = get().socket;
+    if (currentSocket) return;
 
-  addMessage: (message) => {
+    const newSocket = io(`http://${window.location.hostname}:8000`);
+
+    newSocket.on("connect", () => {
+      console.log("[Socket.IO] Connected to MIRA AI Research server");
+    });
+
+    newSocket.on("mira:status", (data: { conversation_id: string; status: string }) => {
+      if (data.conversation_id === get().activeConversationId) {
+        set({ statusMessage: data.status });
+      }
+    });
+
+    newSocket.on("mira:response", (data: {
+      conversation_id: string;
+      role: "agent";
+      content: string;
+      sources: ChatSource[];
+    }) => {
+      const { activeConversationId, conversations } = get();
+      if (data.conversation_id !== activeConversationId) return;
+
+      const agentMessage: ChatMessage = {
+        id: generateId(),
+        role: "agent",
+        content: data.content,
+        timestamp: getCurrentTime(),
+        isRead: true,
+        attachments: [],
+        sources: data.sources
+      };
+
+      const updated = conversations.map((conv) => {
+        if (conv.id === data.conversation_id) {
+          return {
+            ...conv,
+            messages: [...conv.messages, agentMessage],
+            preview: data.content.substring(0, 100) + "..."
+          };
+        }
+        return conv;
+      });
+
+      set({
+        conversations: updated,
+        isLoading: false,
+        statusMessage: ""
+      });
+    });
+
+    newSocket.on("mira:voice_transcript", (data: {
+      conversation_id: string;
+      role: "user" | "system";
+      content: string;
+    }) => {
+      const { activeConversationId, conversations } = get();
+      if (data.conversation_id !== activeConversationId) return;
+
+      const newMessage: ChatMessage = {
+        id: generateId(),
+        role: data.role === "system" ? "agent" : data.role,
+        content: data.content,
+        timestamp: getCurrentTime(),
+        isRead: true,
+        attachments: [],
+        sources: []
+      };
+
+      const updated = conversations.map((conv) => {
+        if (conv.id === data.conversation_id) {
+          return {
+            ...conv,
+            messages: [...conv.messages, newMessage],
+            preview: data.content.substring(0, 100) + "..."
+          };
+        }
+        return conv;
+      });
+
+      set({ conversations: updated });
+    });
+
+    newSocket.on("mira:voice_response", (data: {
+      conversation_id: string;
+      role: "agent";
+      content: string;
+      audio: string;
+    }) => {
+      const { activeConversationId, conversations } = get();
+      if (data.conversation_id !== activeConversationId) return;
+
+      const agentMessage: ChatMessage = {
+        id: generateId(),
+        role: "agent",
+        content: data.content,
+        timestamp: getCurrentTime(),
+        isRead: true,
+        attachments: [],
+        sources: []
+      };
+
+      const updated = conversations.map((conv) => {
+        if (conv.id === data.conversation_id) {
+          return {
+            ...conv,
+            messages: [...conv.messages, agentMessage],
+            preview: data.content.substring(0, 100) + "..."
+          };
+        }
+        return conv;
+      });
+
+      set({
+        conversations: updated,
+        isVoiceProcessing: false,
+        statusMessage: ""
+      });
+
+      // Dispatch custom audio playing event for the component to catch
+      const playEvent = new CustomEvent("mira:play_audio", { detail: { audio: data.audio } });
+      window.dispatchEvent(playEvent);
+    });
+
+    newSocket.on("mira:call_docs_processed", (data: {
+      conversation_id: string;
+      success: boolean;
+    }) => {
+      if (data.conversation_id === get().activeConversationId) {
+        set({ isVoiceProcessing: false, statusMessage: "" });
+      }
+    });
+
+    set({ socket: newSocket });
+  },
+
+  disconnectSocket: () => {
+    const { socket } = get();
+    if (socket) {
+      socket.disconnect();
+      set({ socket: null });
+    }
+  },
+
+  fetchConversations: async (practitionerId) => {
+    try {
+      const url = `http://${window.location.hostname}:8000/mira/research/conversations?practitioner_id=${practitionerId}`;
+      const { data } = await axios.get(url);
+      set({ conversations: data });
+    } catch (err) {
+      console.error("[AI Researcher] Failed to fetch conversations:", err);
+    }
+  },
+
+  fetchMessages: async (conversationId) => {
+    try {
+      const url = `http://${window.location.hostname}:8000/mira/research/conversations/${conversationId}/messages`;
+      const { data } = await axios.get(url);
+      set((state) => ({
+        conversations: state.conversations.map((conv) => {
+          if (conv.id === conversationId) {
+            return { ...conv, messages: data };
+          }
+          return conv;
+        })
+      }));
+    } catch (err) {
+      console.error("[AI Researcher] Failed to fetch messages:", err);
+    }
+  },
+
+  createConversation: async (type, title) => {
+    const user = useAuthStore.getState().user;
+    if (!user) return;
+
+    const convId = generateId();
+    const defaultTitle = type === "call" ? "New Call Session" : "New Lookup Session";
+    const sessionTitle = title || defaultTitle;
+
+    const newSession: LookupConversation = {
+      id: convId,
+      title: sessionTitle,
+      preview: "No messages yet",
+      date: getFormattedDate(),
+      timestamp: getCurrentTime(),
+      type,
+      messages: []
+    };
+
+    // Optimistically update frontend
     set((state) => ({
-      messages: [...state.messages, message],
+      conversations: [newSession, ...state.conversations],
+      activeConversationId: convId,
+      pendingAttachments: []
     }));
+
+    try {
+      const url = `http://${window.location.hostname}:8000/mira/research/conversations`;
+      await axios.post(url, {
+        id: convId,
+        practitioner_id: user.id,
+        title: sessionTitle,
+        type
+      });
+    } catch (err) {
+      console.error("[AI Researcher] Failed to persist new conversation:", err);
+    }
+  },
+
+  deleteConversation: async (id) => {
+    set((state) => {
+      const updated = state.conversations.filter((c) => c.id !== id);
+      const nextActiveId = state.activeConversationId === id ? null : state.activeConversationId;
+      return {
+        conversations: updated,
+        activeConversationId: nextActiveId
+      };
+    });
+
+    try {
+      const url = `http://${window.location.hostname}:8000/mira/research/conversations/${id}`;
+      await axios.delete(url);
+    } catch (err) {
+      console.error("[AI Researcher] Failed to delete conversation on server:", err);
+    }
+  },
+
+  setActiveConversationId: (id) => {
+    set({ activeConversationId: id });
+    if (id) {
+      // Sync messages from the backend when active conversation is loaded
+      get().fetchMessages(id);
+    }
   },
 
   addPendingAttachment: (attachment) => {
     set((state) => ({
-      pendingAttachments: [...state.pendingAttachments, attachment],
+      pendingAttachments: [...state.pendingAttachments, attachment]
     }));
   },
 
   removePendingAttachment: (id) => {
     set((state) => ({
-      pendingAttachments: state.pendingAttachments.filter(
-        (att) => att.id !== id
-      ),
+      pendingAttachments: state.pendingAttachments.filter((att) => att.id !== id)
     }));
   },
 
@@ -155,49 +376,201 @@ export const useAIResearcherStore = create<AIResearcherStore>((set, get) => ({
     set({ pendingAttachments: [] });
   },
 
-  setLoading: (loading) => {
-    set({ isLoading: loading });
-  },
+  sendUserMessage: async (content) => {
+    const { activeConversationId, pendingAttachments, socket } = get();
+    const user = useAuthStore.getState().user;
+    if (!activeConversationId || !user || !socket) return;
 
-  sendUserMessage: (content) => {
-    const state = get();
+    set({ isLoading: true, statusMessage: "Preparing attachments..." });
 
-    // Build the user message with any pending attachments
+    // 1. Process files into base64 payloads asynchronously
+    const processedAttachments = await Promise.all(
+      pendingAttachments.map(async (att) => {
+        if (att.file) {
+          try {
+            const base64 = await fileToBase64(att.file);
+            return {
+              type: att.type,
+              name: att.name,
+              size: att.size,
+              url: att.url,
+              data: base64
+            };
+          } catch (e) {
+            console.error(`[AI Researcher] Error encoding attachment ${att.name}:`, e);
+          }
+        }
+        return {
+          type: att.type,
+          name: att.name,
+          size: att.size,
+          url: att.url
+        };
+      })
+    );
+
     const userMessage: ChatMessage = {
       id: generateId(),
       role: "user",
       content,
       timestamp: getCurrentTime(),
       isRead: false,
-      attachments: [...state.pendingAttachments],
-      sources: [],
+      attachments: [...pendingAttachments],
+      sources: []
     };
 
-    set((currentState) => ({
-      messages: [...currentState.messages, userMessage],
-      pendingAttachments: [],
-      isLoading: true,
+    // 2. Append local message optimistically
+    set((state) => {
+      const updatedConvs = state.conversations.map((conv) => {
+        if (conv.id === activeConversationId) {
+          const updatedMessages = [...conv.messages, userMessage];
+          return {
+            ...conv,
+            messages: updatedMessages,
+            preview: content || (pendingAttachments.length > 0 ? "Sent attachment" : ""),
+            timestamp: getCurrentTime()
+          };
+        }
+        return conv;
+      });
+
+      return {
+        conversations: updatedConvs,
+        pendingAttachments: [],
+        statusMessage: "Mira is connecting..."
+      };
+    });
+
+    // 3. Emit message over Socket.io
+    socket.emit("mira:send_message", {
+      conversation_id: activeConversationId,
+      practitioner_id: user.id,
+      content,
+      attachments: processedAttachments
+    });
+  },
+
+  startCallSession: async (practitionerId) => {
+    const { activeConversationId, conversations } = get();
+
+    if (activeConversationId) {
+      const activeConv = conversations.find((c) => c.id === activeConversationId);
+      if (activeConv) {
+        console.log(`[Call Session] Resuming active conversation: ${activeConversationId}`);
+        set({
+          isCallActive: true,
+          isVoiceProcessing: false
+        });
+
+        try {
+          // Sync database table conversation type to "call"
+          const url = `http://${window.location.hostname}:8000/mira/research/conversations`;
+          await axios.post(url, {
+            id: activeConversationId,
+            practitioner_id: practitionerId,
+            title: activeConv.title,
+            type: "call"
+          });
+
+          // Update type locally as well
+          set((state) => ({
+            conversations: state.conversations.map((conv) => {
+              if (conv.id === activeConversationId) {
+                return { ...conv, type: "call" };
+              }
+              return conv;
+            })
+          }));
+        } catch (err) {
+          console.error("[AI Researcher] Failed to sync call conversation type:", err);
+        }
+        return;
+      }
+    }
+
+    const convId = generateId();
+    const sessionTitle = "Voice Call - " + getFormattedDate();
+
+    const newSession: LookupConversation = {
+      id: convId,
+      title: sessionTitle,
+      preview: "Call starting...",
+      date: getFormattedDate(),
+      timestamp: getCurrentTime(),
+      type: "call",
+      messages: []
+    };
+
+    set((state) => ({
+      conversations: [newSession, ...state.conversations],
+      activeConversationId: convId,
+      isCallActive: true,
+      pendingAttachments: []
     }));
 
-    // Simulate an agent response after a short delay
-    setTimeout(() => {
-      const agentMessage: ChatMessage = {
-        id: generateId(),
-        role: "agent",
-        content:
-          "I'm analysing your query. This is a simulated response — the backend integration will provide real clinical intelligence here.",
-        timestamp: getCurrentTime(),
-        isRead: true,
-        attachments: [],
-        sources: [
-          { id: generateId(), label: "Clinical Reference", type: "pdf" },
-        ],
-      };
-
-      set((currentState) => ({
-        messages: [...currentState.messages, agentMessage],
-        isLoading: false,
-      }));
-    }, 1500);
+    try {
+      const url = `http://${window.location.hostname}:8000/mira/research/conversations`;
+      await axios.post(url, {
+        id: convId,
+        practitioner_id: practitionerId,
+        title: sessionTitle,
+        type: "call"
+      });
+    } catch (err) {
+      console.error("[AI Researcher] Failed to persist new call conversation:", err);
+    }
   },
+
+  endCallSession: () => {
+    set({
+      isCallActive: false,
+      isVoiceProcessing: false,
+      statusMessage: ""
+    });
+  },
+
+  sendCallVoice: async (base64Audio) => {
+    const { activeConversationId, socket } = get();
+    const user = useAuthStore.getState().user;
+    if (!activeConversationId || !user || !socket) return;
+
+    set({ isVoiceProcessing: true, statusMessage: "Mira is listening..." });
+
+    socket.emit("mira:voice_message", {
+      conversation_id: activeConversationId,
+      practitioner_id: user.id,
+      audio: base64Audio,
+      filename: "utterance.wav"
+    });
+  },
+
+  sendCallDocs: async (attachments) => {
+    const { activeConversationId, socket } = get();
+    if (!activeConversationId || !socket) return;
+
+    set({ isVoiceProcessing: true, statusMessage: "Processing attachments..." });
+
+    const processed = await Promise.all(
+      attachments.map(async (att) => {
+        if (att.file) {
+          const base64 = await fileToBase64(att.file);
+          return {
+            type: att.type,
+            name: att.name,
+            data: base64
+          };
+        }
+        return {
+          type: att.type,
+          name: att.name,
+          url: att.url
+        };
+      })
+    );
+
+    socket.emit("mira:call_send_docs", {
+      conversation_id: activeConversationId,
+      attachments: processed
+    });
+  }
 }));

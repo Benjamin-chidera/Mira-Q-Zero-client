@@ -32,7 +32,7 @@ const useAuthStore = create<AuthStore>()(
       login: async (email, password) => {
         set({ isLoggingIn: true, loginError: null });
         try {
-          const res = await axios.post("http://localhost:8000/auth/login", {
+          const res = await axios.post(`http://${window.location.hostname}:8000/auth/login`, {
             email: email.trim().toLowerCase(),
             password: password,
           });
@@ -50,7 +50,7 @@ const useAuthStore = create<AuthStore>()(
       setPassword: async (email, password) => {
         set({ isLoggingIn: true, loginError: null });
         try {
-          const res = await axios.post("http://localhost:8000/auth/set-password", {
+          const res = await axios.post(`http://${window.location.hostname}:8000/auth/set-password`, {
             email: email.trim().toLowerCase(),
             password: password,
           });
@@ -66,7 +66,7 @@ const useAuthStore = create<AuthStore>()(
 
       logout: async () => {
         try {
-          await axios.post("http://localhost:8000/auth/logout");
+          await axios.post(`http://${window.location.hostname}:8000/auth/logout`);
         } catch {
           // Proceed with local logout even if the server call fails
         }

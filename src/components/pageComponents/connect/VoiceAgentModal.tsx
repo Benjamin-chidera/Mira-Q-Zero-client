@@ -3,6 +3,7 @@ import { Mic, MicOff, PhoneOff, CheckCircle2, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import axios from "axios";
 import { io, Socket } from "socket.io-client";
+import useConnectStore from "@/store/connect.store";
 
 function encodeToWAV(audioBuffer: AudioBuffer): Blob {
   const samples = audioBuffer.getChannelData(0);
@@ -74,6 +75,7 @@ export function VoiceAgentModal({
   nhsNumber,
   practitionerName,
 }: VoiceAgentModalProps) {
+  const { prefetchedGreetingAudio, setPrefetchedGreetingAudio } = useConnectStore();
   const [status, setStatus] = useState<AgentStatus>("greeting");
   const [transcript, setTranscript] = useState("");
   const [agentMessage, setAgentMessage] = useState("");
@@ -137,6 +139,32 @@ export function VoiceAgentModal({
       };
 
       try {
+        const firstName = bookingData.patientName.split(" ")[0];
+        const isGreeting = text.startsWith(`Hi ${firstName}, I'm your GP assistant.`);
+
+        if (isGreeting && prefetchedGreetingAudio) {
+          console.log("[VoiceAgent] Playing cached greeting audio instantly");
+          if (
+            !audioContextRef.current ||
+            audioContextRef.current.state === "closed"
+          ) {
+            audioContextRef.current = new AudioContext();
+          }
+          const ctx = audioContextRef.current;
+          await ctx.resume();
+
+          // Copy ArrayBuffer as decodeAudioData consumes/neuters the original buffer
+          const bufferCopy = prefetchedGreetingAudio.slice(0);
+          const audioBuffer = await ctx.decodeAudioData(bufferCopy);
+          const source = ctx.createBufferSource();
+          source.buffer = audioBuffer;
+          source.connect(ctx.destination);
+          audioSourceRef.current = source;
+          source.onended = handleDone;
+          source.start();
+          return;
+        }
+
         if (!socketRef.current) {
           throw new Error("Socket.IO client not connected");
         }
@@ -187,7 +215,7 @@ export function VoiceAgentModal({
         handleDone();
       }
     },
-    [practitionerName],
+    [practitionerName, prefetchedGreetingAudio, bookingData.patientName],
   );
 
   // Initializes MediaRecorder and starts capturing voice live
@@ -216,6 +244,26 @@ export function VoiceAgentModal({
 
   // Stops voice recording and starts the transcription processing fallback phase
   const stopListening = useCallback(() => {
+    // Text-only fallback path if microphone is denied or unsupported
+    if (!hasSpeechSupport) {
+      const finalText = transcriptRef.current.trim();
+      const firstName = bookingData.patientName.split(" ")[0];
+
+      if (!finalText) {
+        const retryMsg = `I didn't catch that, ${firstName}. Please describe what's been bothering you in the text area below.`;
+        setAgentMessage(retryMsg);
+        speak(retryMsg);
+        return;
+      }
+
+      setSymptomsSummary(finalText);
+      const summary = `Thank you ${firstName}. Here's what I understood: "${finalText}". Is that a correct summary of your symptoms?`;
+      setAgentMessage(summary);
+      setStatus("confirming");
+      speak(summary);
+      return;
+    }
+
     if (
       mediaRecorderRef.current &&
       mediaRecorderRef.current.state !== "inactive"
@@ -314,7 +362,7 @@ export function VoiceAgentModal({
       setAgentMessage(retryMsg);
       speak(retryMsg, startListening);
     }
-  }, [bookingData.patientName, speak, startListening]);
+  }, [bookingData.patientName, speak, startListening, hasSpeechSupport]);
 
   // Keep refs synchronized to prevent stale closures and avoid
   // putting callbacks in the main useEffect dependency array
@@ -337,7 +385,7 @@ export function VoiceAgentModal({
     let ref: string | null = null;
     try {
       if (slotId && nhsNumber && odsCode) {
-        const res = await axios.post("http://localhost:8000/api/bookings", {
+        const res = await axios.post(`http://${window.location.hostname}:8000/api/bookings`, {
           ods_code: odsCode,
           slot_id: slotId,
           nhs_number: nhsNumber,
@@ -402,11 +450,12 @@ export function VoiceAgentModal({
         socketRef.current.disconnect();
         socketRef.current = null;
       }
+      setPrefetchedGreetingAudio(null);
       return;
     }
 
     // Establish persistent Socket.IO connection for real-time voice interaction
-    socketRef.current = io("http://localhost:8000", {
+    socketRef.current = io(`http://${window.location.hostname}:8000`, {
       transports: ["websocket"],
     });
 
@@ -492,13 +541,13 @@ export function VoiceAgentModal({
           <div className="flex items-center gap-2 bg-black/25 px-3 py-1 rounded-full border border-white/5">
             <span
               className={cn("w-2 h-2 rounded-full", {
-                "bg-red-500 animate-pulse shadow-[0_0_8px_#ef4444]":
+                "bg-red-500 animate-pulse shadow-[0_0_0.5rem_#ef4444]":
                   status === "listening",
-                "bg-amber-400 animate-pulse shadow-[0_0_8px_#fbbf24]":
+                "bg-amber-400 animate-pulse shadow-[0_0_0.5rem_#fbbf24]":
                   status === "processing" || status === "sending",
-                "bg-blue-400 animate-pulse shadow-[0_0_8px_#60a5fa]":
+                "bg-blue-400 animate-pulse shadow-[0_0_0.5rem_#60a5fa]":
                   isAgentSpeaking,
-                "bg-green-500 shadow-[0_0_8px_#22c55e]": status === "sent",
+                "bg-green-500 shadow-[0_0_0.5rem_#22c55e]": status === "sent",
               })}
             />
             <span className="text-blue-100 text-xs font-semibold tracking-wide select-none">
@@ -518,7 +567,7 @@ export function VoiceAgentModal({
           {/* Avatar Container */}
           <div className="relative flex flex-col items-center justify-center">
             {/* Concentric Pulsing Rings */}
-            {status === "listening" && !isMuted && (
+            {status === "listening" && !isMuted && hasSpeechSupport && (
               <>
                 <div className="absolute w-32 h-32 rounded-full bg-red-500/10 animate-ping duration-1000 opacity-75" />
                 <div className="absolute w-28 h-28 rounded-full bg-red-500/20 animate-pulse duration-1000" />
@@ -535,12 +584,12 @@ export function VoiceAgentModal({
               className={cn(
                 "w-24 h-24 rounded-full bg-[#1E293B] border-2 flex items-center justify-center transition-all duration-300 z-10 shadow-lg",
                 {
-                  "border-[#005EB8] shadow-[0_0_24px_rgba(0,94,184,0.4)]":
+                  "border-[#005EB8] shadow-[0_0_1.5rem_rgba(0,94,184,0.4)]":
                     isAgentSpeaking,
-                  "border-red-500 shadow-[0_0_24px_rgba(239,68,68,0.4)]":
-                    status === "listening" && !isMuted,
-                  "border-gray-600": status === "processing" || isMuted,
-                  "border-green-500 shadow-[0_0_24px_rgba(34,197,94,0.4)]":
+                  "border-red-500 shadow-[0_0_1.5rem_rgba(239,68,68,0.4)]":
+                    status === "listening" && !isMuted && hasSpeechSupport,
+                  "border-gray-600": status === "processing" || isMuted || !hasSpeechSupport,
+                  "border-green-500 shadow-[0_0_1.5rem_rgba(34,197,94,0.4)]":
                     status === "sent",
                 },
               )}
@@ -548,9 +597,9 @@ export function VoiceAgentModal({
               <svg
                 className={cn("w-10 h-10 transition-colors duration-300", {
                   "text-[#005EB8]": isAgentSpeaking,
-                  "text-red-400": status === "listening" && !isMuted,
+                  "text-red-400": status === "listening" && !isMuted && hasSpeechSupport,
                   "text-green-400": status === "sent",
-                  "text-gray-400": status === "processing" || isMuted,
+                  "text-gray-400": status === "processing" || isMuted || !hasSpeechSupport,
                 })}
                 viewBox="0 0 24 24"
                 fill="currentColor"
@@ -560,29 +609,29 @@ export function VoiceAgentModal({
               </svg>
             </div>
 
-            {status === "listening" && isMuted && (
+            {status === "listening" && isMuted && hasSpeechSupport && (
               <span className="absolute bottom-0 right-0 w-8 h-8 bg-red-600 rounded-full flex items-center justify-center animate-pulse border-2 border-[#1E293B] z-20 shadow-md">
                 <MicOff className="w-4 h-4 text-white" />
               </span>
             )}
-            {status === "listening" && !isMuted && (
+            {status === "listening" && !isMuted && hasSpeechSupport && (
               <span className="absolute bottom-0 right-0 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center animate-bounce border-2 border-[#1E293B] z-20 shadow-md">
                 <Mic className="w-4 h-4 text-white" />
               </span>
             )}
 
             {/* Custom Soundwave Visualizers */}
-            {status === "listening" && !isMuted && (
+            {status === "listening" && !isMuted && hasSpeechSupport && (
               <div className="flex items-center gap-1.5 h-6 mt-4">
                 <style>{`
                   @keyframes soundwave {
-                    0%, 100% { height: 8px; }
-                    50% { height: 26px; }
+                    0%, 100% { height: 0.5rem; }
+                    50% { height: 1.625rem; }
                   }
                   .wave-bar {
-                    width: 3.5px;
+                    width: 0.21875rem;
                     background-color: #ef4444;
-                    border-radius: 9999px;
+                    border-radius: 624.938rem;
                     animation: soundwave 1.2s ease-in-out infinite;
                   }
                   .wave-bar:nth-child(1) { animation-delay: -0.4s; }
@@ -602,13 +651,13 @@ export function VoiceAgentModal({
               <div className="flex items-center gap-1.5 h-6 mt-4">
                 <style>{`
                   @keyframes agentsoundwave {
-                    0%, 100% { height: 8px; }
-                    50% { height: 22px; }
+                    0%, 100% { height: 0.5rem; }
+                    50% { height: 1.375rem; }
                   }
                   .agent-wave-bar {
-                    width: 3.5px;
+                    width: 0.21875rem;
                     background-color: #005EB8;
-                    border-radius: 9999px;
+                    border-radius: 624.938rem;
                     animation: agentsoundwave 1.4s ease-in-out infinite;
                   }
                   .agent-wave-bar:nth-child(1) { animation-delay: -0.5s; }
@@ -629,17 +678,17 @@ export function VoiceAgentModal({
           {/* Agent message bubble */}
           {agentMessage && (
             <div className="bg-linear-to-r from-[#1E293B] to-[#243447] rounded-2xl rounded-tl-sm px-5 py-4 w-full border border-white/5 shadow-md">
-              <p className="text-[#94A3B8] text-[10px] uppercase font-bold tracking-wider mb-1 select-none">
+              <p className="text-[#94A3B8] text-[0.625rem] uppercase font-bold tracking-wider mb-1 select-none">
                 GP Assistant
               </p>
-              <p className="text-slate-100 text-[14px] leading-relaxed font-medium">
+              <p className="text-slate-100 text-[0.875rem] leading-relaxed font-medium">
                 {agentMessage}
               </p>
             </div>
           )}
 
           {/* Real-time User Live Transcript Bubble */}
-          {(transcript || (status === "listening" && !isMuted)) &&
+          {hasSpeechSupport && (transcript || (status === "listening" && !isMuted)) &&
             (status === "listening" ||
               status === "processing" ||
               status === "confirming") && (
@@ -647,7 +696,7 @@ export function VoiceAgentModal({
                 {/* Visual live glow line */}
                 <div
                   className={cn(
-                    "absolute top-0 left-0 w-full h-[2px] animate-pulse",
+                    "absolute top-0 left-0 w-full h-0.5 animate-pulse",
                     status === "listening" && !isMuted
                       ? "bg-linear-to-r from-red-500/20 via-red-500 to-red-500/20"
                       : "bg-linear-to-r from-blue-500/20 via-blue-500 to-blue-500/20",
@@ -655,7 +704,7 @@ export function VoiceAgentModal({
                 />
 
                 <div className="flex items-center justify-between mb-2">
-                  <p className="text-[10px] text-gray-400 uppercase font-bold tracking-wider select-none">
+                  <p className="text-[0.625rem] text-gray-400 uppercase font-bold tracking-wider select-none">
                     {firstName}'s Response
                   </p>
                   {status === "listening" && !isMuted && (
@@ -664,14 +713,14 @@ export function VoiceAgentModal({
                         <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                         <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
                       </span>
-                      <span className="text-[9px] text-red-400 uppercase font-bold tracking-widest">
+                      <span className="text-[0.5625rem] text-red-400 uppercase font-bold tracking-widest">
                         Live
                       </span>
                     </div>
                   )}
                 </div>
 
-                <div className="text-white text-[14px] leading-relaxed max-h-32 overflow-y-auto pr-1 select-text">
+                <div className="text-white text-[0.875rem] leading-relaxed max-h-32 overflow-y-auto pr-1 select-text">
                   {transcript ? (
                     <span className="text-slate-100">{transcript}</span>
                   ) : null}
@@ -689,7 +738,7 @@ export function VoiceAgentModal({
           {/* Text fallback when browser doesn't support SpeechRecognition */}
           {!hasSpeechSupport && status === "listening" && (
             <div className="w-full bg-[#0F172A] border border-[#334155] rounded-xl p-4 shadow-inner">
-              <p className="text-[10px] text-gray-400 uppercase mb-2 font-bold tracking-wider select-none">
+              <p className="text-[0.625rem] text-gray-400 uppercase mb-2 font-bold tracking-wider select-none">
                 Voice input not supported — type your symptoms
               </p>
               <textarea
@@ -729,7 +778,7 @@ export function VoiceAgentModal({
 
               {alreadyBookedInfo ? (
                 <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl px-5 py-4 w-full text-left shadow-lg">
-                  <p className="text-amber-400 text-[10px] font-bold uppercase tracking-wider mb-2 select-none">
+                  <p className="text-amber-400 text-[0.625rem] font-bold uppercase tracking-wider mb-2 select-none">
                     You already have a booking
                   </p>
                   <div className="flex flex-col gap-1 border-t border-[#334155] pt-2">
@@ -740,7 +789,7 @@ export function VoiceAgentModal({
                       {alreadyBookedInfo.date} at {alreadyBookedInfo.time}
                     </p>
                     <div className="mt-3 flex items-center justify-between bg-black/25 px-3 py-2 rounded-lg border border-white/5">
-                      <span className="text-[10px] text-gray-400 uppercase font-bold">
+                      <span className="text-[0.625rem] text-gray-400 uppercase font-bold">
                         Reference
                       </span>
                       <span className="text-amber-300 font-bold text-sm font-mono tracking-wider">
@@ -753,7 +802,7 @@ export function VoiceAgentModal({
                 <div className="w-full flex flex-col items-center gap-4">
                   {referenceNumber && (
                     <div className="bg-green-500/10 border border-green-500/20 rounded-xl px-6 py-3 shadow-md w-full flex items-center justify-between">
-                      <span className="text-[10px] text-green-400 uppercase tracking-wider font-bold select-none">
+                      <span className="text-[0.625rem] text-green-400 uppercase tracking-wider font-bold select-none">
                         Booking Reference
                       </span>
                       <span className="text-green-400 font-extrabold text-base font-mono tracking-widest bg-black/35 px-3 py-1 rounded border border-green-500/20">
@@ -778,7 +827,7 @@ export function VoiceAgentModal({
               onClick={stopListening}
               className="w-full bg-[#005EB8] hover:bg-[#004C99] text-white font-bold py-3 rounded-xl transition-all shadow-md active:scale-[0.98] border border-white/10"
             >
-              Done Speaking
+              {hasSpeechSupport ? "Done Speaking" : "Submit Symptoms"}
             </button>
           )}
 

@@ -159,7 +159,7 @@ export function PatientCardMenu({ patient }: PatientCardMenuProps) {
         <div
           ref={menuRef}
           style={{ position: 'fixed', top: menuPosition.top, right: menuPosition.right }}
-          className="z-20 w-[210px] bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden"
+          className="z-20 w-[13.125rem] bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {menuItems.map((item) => {
@@ -168,7 +168,7 @@ export function PatientCardMenu({ patient }: PatientCardMenuProps) {
               <button
                 key={item.action}
                 onClick={() => handleAction(item.action)}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium transition-colors ${item.className}`}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 text-[0.8125rem] font-medium transition-colors ${item.className}`}
               >
                 <Icon className="w-4 h-4 shrink-0" />
                 {item.label}
@@ -182,7 +182,7 @@ export function PatientCardMenu({ patient }: PatientCardMenuProps) {
       <AlertDialog open={isUpdateOpen} onOpenChange={setIsUpdateOpen}>
         <AlertDialogContent
           size="xl"
-          className="p-0 gap-0 overflow-hidden rounded-2xl shadow-2xl border-0 w-[98vw] max-w-[1400px]! h-[92vh] flex flex-col bg-white"
+          className="p-0 gap-0 overflow-hidden rounded-2xl shadow-2xl border-0 w-[98vw] max-w-[87.5rem]! h-[92vh] flex flex-col bg-white"
         >
           {/* Top Header Bar */}
           <div className="bg-linear-to-r from-[#005EB8] to-[#003B7A] px-8 py-5 text-white flex items-center justify-between shrink-0">
@@ -191,10 +191,10 @@ export function PatientCardMenu({ patient }: PatientCardMenuProps) {
                 <Edit className="w-5 h-5 text-white" />
               </div>
               <div>
-                <AlertDialogTitle className="text-[18px] font-bold tracking-tight">
+                <AlertDialogTitle className="text-[1.125rem] font-bold tracking-tight">
                   Patient Clinical Records
                 </AlertDialogTitle>
-                <AlertDialogDescription className="text-white/70 text-[12px] mt-0.5 font-medium">
+                <AlertDialogDescription className="text-white/70 text-[0.75rem] mt-0.5 font-medium">
                   Clinical profile management dashboard for NHS Patient #{patient.id}
                 </AlertDialogDescription>
               </div>
@@ -211,7 +211,7 @@ export function PatientCardMenu({ patient }: PatientCardMenuProps) {
           {/* Main Layout Grid */}
           <div className="flex-1 flex min-h-0 overflow-hidden">
             {/* Left Side: Blocks/Tabs Sidebar */}
-            <div className="w-[300px] bg-slate-50 border-r border-slate-100 flex flex-col justify-between shrink-0 select-none">
+            <div className="w-[18.75rem] bg-slate-50 border-r border-slate-100 flex flex-col justify-between shrink-0 select-none">
               <div className="flex flex-col gap-2 p-4">
                 {sidebarTabs.map((tab) => {
                   const TabIcon = tab.icon;
@@ -229,8 +229,8 @@ export function PatientCardMenu({ patient }: PatientCardMenuProps) {
                     >
                       <TabIcon className={`w-5 h-5 shrink-0 ${isActive ? 'text-white' : 'text-[#005EB8]'}`} />
                       <div className="flex flex-col">
-                        <span className="text-[13px] font-bold tracking-tight leading-none">{tab.label}</span>
-                        <span className={`text-[10px] ${isActive ? 'text-white/70' : 'text-slate-400'} mt-1 leading-tight font-medium`}>
+                        <span className="text-[0.8125rem] font-bold tracking-tight leading-none">{tab.label}</span>
+                        <span className={`text-[0.625rem] ${isActive ? 'text-white/70' : 'text-slate-400'} mt-1 leading-tight font-medium`}>
                           {tab.desc}
                         </span>
                       </div>
@@ -241,12 +241,12 @@ export function PatientCardMenu({ patient }: PatientCardMenuProps) {
 
               {/* Bottom Patient Identity context */}
               <div className="p-4 border-t border-slate-100 bg-slate-100/30 flex items-center gap-3 select-none shrink-0">
-                <div className="w-9 h-9 rounded-full bg-[#005EB8] text-white flex items-center justify-center font-bold text-[13px] shadow-sm">
+                <div className="w-9 h-9 rounded-full bg-[#005EB8] text-white flex items-center justify-center font-bold text-[0.8125rem] shadow-sm">
                   {patient.name.split(' ').map((n: string) => n[0]).join('')}
                 </div>
                 <div className="flex flex-col overflow-hidden">
-                  <span className="text-[13px] font-bold text-slate-700 truncate leading-none">{patient.name}</span>
-                  <span className="text-[10px] text-slate-400 mt-1 font-mono tracking-wider truncate">NHS: {patient.nhsNumber}</span>
+                  <span className="text-[0.8125rem] font-bold text-slate-700 truncate leading-none">{patient.name}</span>
+                  <span className="text-[0.625rem] text-slate-400 mt-1 font-mono tracking-wider truncate">NHS: {patient.nhsNumber}</span>
                 </div>
               </div>
             </div>
@@ -256,7 +256,7 @@ export function PatientCardMenu({ patient }: PatientCardMenuProps) {
               <div className="flex-1 flex flex-col min-h-0">
                 {/* Tab header */}
                 <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between shrink-0">
-                  <h2 className="text-[16px] font-bold text-slate-800 uppercase tracking-wider">
+                  <h2 className="text-[1rem] font-bold text-slate-800 uppercase tracking-wider">
                     {sidebarTabs.find((t) => t.id === activeTab)?.label}
                   </h2>
                 </div>

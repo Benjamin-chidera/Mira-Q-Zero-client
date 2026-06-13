@@ -100,7 +100,7 @@ export const ConsultationPage = () => {
       </div>
 
       {isSplitScreen && (
-        <div className="w-[450px] shrink-0 h-screen border-l border-gray-200 bg-white">
+        <div className="w-[28.125rem] shrink-0 h-screen border-l border-gray-200 bg-white">
           <AISplitScreen />
         </div>
       )}

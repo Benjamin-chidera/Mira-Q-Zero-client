@@ -91,7 +91,7 @@ export function ResearchCardMenu({ researchId, researchTitle }: ResearchCardMenu
         <div
           ref={menuRef}
           style={{ position: 'fixed', top: menuPosition.top, right: menuPosition.right }}
-          className="z-200 w-[210px] bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden"
+          className="z-200 w-[13.125rem] bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {menuItems.map((item) => {
@@ -100,7 +100,7 @@ export function ResearchCardMenu({ researchId, researchTitle }: ResearchCardMenu
               <button
                 key={item.action}
                 onClick={() => handleAction(item.action)}
-                className={`w-full flex items-center gap-3 px-4 py-2.5 text-[13px] font-medium transition-colors ${item.className}`}
+                className={`w-full flex items-center gap-3 px-4 py-2.5 text-[0.8125rem] font-medium transition-colors ${item.className}`}
               >
                 <Icon className="w-4 h-4 shrink-0" />
                 {item.label}

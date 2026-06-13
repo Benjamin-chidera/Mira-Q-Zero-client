@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 
 // Named constant for the API base URL to avoid hardcoded magic strings in fetch calls.
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = `http://${window.location.hostname}:8000`;
 
 export interface ClinicalDocument {
   id: number | string;
@@ -331,6 +331,7 @@ export const useMiraStore = create<MiraStore>((set, get) => ({
       const response = await fetch(`${API_BASE_URL}/mira/medication/${patientId}`);
       if (response.ok) {
         const data = await response.json();
+        console.log('data', data);
         set({ medications: data });
       } else {
         throw new Error('Failed to fetch medications.');
@@ -408,6 +409,7 @@ export const useMiraStore = create<MiraStore>((set, get) => ({
       const response = await fetch(`${API_BASE_URL}/mira/allergy/${patientId}`);
       if (response.ok) {
         const data = await response.json();
+        // console.log('data', data);
         set({ allergies: data });
       } else {
         throw new Error('Failed to fetch allergies.');

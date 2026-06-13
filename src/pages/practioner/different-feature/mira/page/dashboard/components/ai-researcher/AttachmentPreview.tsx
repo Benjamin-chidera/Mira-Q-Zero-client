@@ -41,7 +41,7 @@ export function AttachmentPreview({
   const isImageWithPreview = attachment.type === "image" && attachment.url;
 
   return (
-    <div className="bg-white border border-gray-200 p-2.5 rounded-xl shadow-sm flex items-center gap-3 pr-4 max-w-[280px]">
+    <div className="bg-white border border-gray-200 p-2.5 rounded-xl shadow-sm flex items-center gap-3 pr-4 max-w-[17.5rem]">
       {/* Thumbnail or Icon */}
       {isImageWithPreview ? (
         <img
@@ -55,10 +55,10 @@ export function AttachmentPreview({
 
       {/* File Info */}
       <div className="flex-1 min-w-0">
-        <p className="text-[12px] font-bold text-gray-900 truncate">
+        <p className="text-[0.75rem] font-bold text-gray-900 truncate">
           {attachment.name}
         </p>
-        <p className="text-[10px] text-gray-500 mt-0.5">{attachment.size}</p>
+        <p className="text-[0.625rem] text-gray-500 mt-0.5">{attachment.size}</p>
       </div>
 
       {/* Remove Button (only for pending attachments) */}

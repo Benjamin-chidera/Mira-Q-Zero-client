@@ -55,7 +55,7 @@ export const PractitionerConsultationPage = () => {
       <div className="flex-1 min-w-0 flex flex-col h-screen bg-gray-50">
         {/* Top Navbar */}
         <TopNavbar>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-[300px]">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-[18.75rem]">
             <TabsList className="grid w-full grid-cols-2 bg-gray-100/50 p-1">
               <TabsTrigger 
                 value="patient" 
@@ -150,7 +150,7 @@ export const PractitionerConsultationPage = () => {
       </div>
 
       {isSplitScreen && (
-        <div className="w-[450px] shrink-0 h-screen border-l border-gray-200 bg-white">
+        <div className="w-[28.125rem] shrink-0 h-screen border-l border-gray-200 bg-white">
           <AISplitScreen />
         </div>
       )}

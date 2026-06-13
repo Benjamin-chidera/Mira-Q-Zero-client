@@ -18,7 +18,7 @@ const FeatureSwitch = () => {
             : "text-gray-400 hover:text-white hover:bg-white/10"
         }`}
       >
-        <HeartPulse className="w-[18px] h-[18px]" />
+        <HeartPulse className="w-[1.125rem] h-[1.125rem]" />
         HealthConnect
       </button>
 
@@ -26,11 +26,11 @@ const FeatureSwitch = () => {
         onClick={() => navigate("/practioner/medTech/dashboard")}
         className={`flex items-center gap-2 px-6 py-2.5 rounded-full text-sm font-medium transition-all duration-300 ${
           isMedTech
-            ? "bg-[#42C0FF] text-[#0F172A] shadow-[0_0_20px_rgba(66,192,255,0.4)] font-bold"
+            ? "bg-[#42C0FF] text-[#0F172A] shadow-[0_0_1.25rem_rgba(66,192,255,0.4)] font-bold"
             : "text-gray-400 hover:text-white hover:bg-white/10"
         }`}
       >
-        <Cpu className="w-[18px] h-[18px]" />
+        <Cpu className="w-[1.125rem] h-[1.125rem]" />
         MedTech AI
       </button>
     </div>

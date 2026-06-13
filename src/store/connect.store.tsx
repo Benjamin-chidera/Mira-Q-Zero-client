@@ -74,6 +74,11 @@ interface ConnectState {
   setVerifiedPatientPhone: (phone: string) => void;
   selectedSlot: GPSlot | null;
   setSelectedSlot: (slot: GPSlot | null) => void;
+
+  // Prefetch TTS
+  prefetchedGreetingAudio: ArrayBuffer | null;
+  setPrefetchedGreetingAudio: (audio: ArrayBuffer | null) => void;
+  prefetchGreeting: (patientName: string, gpName: string, practitionerName?: string) => Promise<void>;
 }
 
 // Simple Haversine formula to calculate distance between two points in miles
@@ -125,12 +130,36 @@ const useConnectStore = create<ConnectState>((set, get) => ({
   selectedSlot: null,
   setSelectedSlot: (selectedSlot) => set({ selectedSlot }),
 
+  prefetchedGreetingAudio: null,
+  setPrefetchedGreetingAudio: (prefetchedGreetingAudio) => set({ prefetchedGreetingAudio }),
+  prefetchGreeting: async (patientName, gpName, practitionerName) => {
+    try {
+      const firstName = patientName.split(" ")[0];
+      const greetingText = `Hi ${firstName}, I'm your GP assistant. I'll take a brief note of your symptoms to share with ${gpName}. When you're ready, please describe what's been bothering you.`;
+      
+      const url = `http://${window.location.hostname}:8000/api/tts`;
+      const res = await axios.post(
+        url,
+        {
+          text: greetingText,
+          practitioner_name: practitionerName || "GP Team",
+        },
+        { responseType: "arraybuffer" }
+      );
+      
+      set({ prefetchedGreetingAudio: res.data });
+      console.log("[Prefetch] Greeting audio cached successfully");
+    } catch (error) {
+      console.warn("[Prefetch] Failed to prefetch greeting audio", error);
+    }
+  },
+
   fetchListOfGp: async () => {
     set({ loading: true });
     // Correct way to read state inside an action in Zustand:
     const postcode = get().radius; // Note: This is currently reading 'radius' (e.g. 5) as the postcode.
     try {
-      const url = `http://localhost:8000/gps?postcode=${postcode}`;
+      const url = `http://${window.location.hostname}:8000/gps?postcode=${postcode}`;
       const { data } = await axios.get(url);
 
       console.log(data);
@@ -262,7 +291,7 @@ const useConnectStore = create<ConnectState>((set, get) => ({
       }
 
       // Step 2: Fetch GPs from the Backend API (which routes to England or Scotland)
-      const backendUrl = `http://localhost:8000/gps?postcode=${outcode}&radius=${radius}&startDate=${startDate || ""}&endDate=${endDate || ""}&startTime=${startTime || ""}&endTime=${endTime || ""}`;
+      const backendUrl = `http://${window.location.hostname}:8000/gps?postcode=${outcode}&radius=${radius}&startDate=${startDate || ""}&endDate=${endDate || ""}&startTime=${startTime || ""}&endTime=${endTime || ""}`;
       const { data } = await axios.get(backendUrl);
 
       console.log("Data received from Backend API:", data);

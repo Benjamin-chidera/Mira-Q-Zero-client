@@ -45,6 +45,8 @@ export const BookingDetailsFilling = () => {
     setVerifiedPatientName,
     setVerifiedPatientEmail,
     setVerifiedPatientPhone,
+    selectedSlot,
+    prefetchGreeting,
   } = useConnectStore();
 
   const handleContinue = async () => {
@@ -78,7 +80,7 @@ export const BookingDetailsFilling = () => {
 
     try {
       const res = await axios.post(
-        "http://localhost:8000/consultation/verify-patient",
+        `http://${window.location.hostname}:8000/consultation/verify-patient`,
         {
           given_name: givenName,
           family_name: familyName,
@@ -97,6 +99,14 @@ export const BookingDetailsFilling = () => {
         setVerifiedPatientName(name);
         setVerifiedPatientEmail(patientEmail);
         setVerifiedPatientPhone(patientPhone);
+
+        // Pre-fetch the greeting audio in the background while the user is reading the record-sharing consent modal
+        prefetchGreeting(
+          name,
+          selectedGp?.name ?? "your GP",
+          selectedSlot?.practitioner_name ?? selectedGp?.practitionerName
+        );
+
         setVerifying(false);
         setOpenBookingModal(false);
         setOpenModal(true);

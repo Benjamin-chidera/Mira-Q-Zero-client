@@ -81,9 +81,9 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
 
   if (isLoadingMedications) {
     return (
-      <div className="flex-1 h-full flex flex-col items-center justify-center text-slate-400 animate-pulse min-h-[300px]">
+      <div className="flex-1 h-full flex flex-col items-center justify-center text-slate-400 animate-pulse min-h-[18.75rem]">
         <Loader2 className="w-8 h-8 animate-spin text-[#005EB8] mb-2" />
-        <span className="text-[13px] font-medium">
+        <span className="text-[0.8125rem] font-medium">
           Loading clinical records...
         </span>
       </div>
@@ -95,20 +95,20 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
       {/* List view */}
       <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-4">
         {medicationsError && (
-          <div className="bg-red-50 text-red-600 p-4 border border-red-100 rounded-xl text-[13px] font-semibold flex items-center gap-2">
+          <div className="bg-red-50 text-red-600 p-4 border border-red-100 rounded-xl text-[0.8125rem] font-semibold flex items-center gap-2">
             <AlertCircle className="w-4 h-4 shrink-0" />
             {medicationsError}
           </div>
         )}
 
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">
+        <span className="text-[0.625rem] font-bold text-slate-400 uppercase tracking-widest mb-1">
           Legal record of drug doses & administrations
         </span>
 
         {medications.length === 0 ? (
           <div className="flex-1 flex flex-col items-center justify-center text-slate-300 py-12">
             <Pill className="w-12 h-12 stroke-[1.5] mb-2" />
-            <span className="text-[13px] font-bold">No medications logged</span>
+            <span className="text-[0.8125rem] font-bold">No medications logged</span>
           </div>
         ) : (
           <div className="flex flex-col gap-3">
@@ -128,16 +128,16 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
                 >
                   <div className="flex justify-between items-start">
                     <div>
-                      <h4 className="font-bold text-[14px] text-slate-800">
+                      <h4 className="font-bold text-[0.875rem] text-slate-800">
                         {med.drug_name}
                       </h4>
-                      <p className="text-[12px] text-slate-500 mt-0.5">
+                      <p className="text-[0.75rem] text-slate-500 mt-0.5">
                         {med.dosage} • {med.frequency}
                       </p>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                       <span
-                        className={`text-[10px] font-bold px-2 py-0.5 border rounded-full uppercase tracking-wider ${statusColors}`}
+                        className={`text-[0.625rem] font-bold px-2 py-0.5 border rounded-full uppercase tracking-wider ${statusColors}`}
                       >
                         {med.status}
                       </span>
@@ -150,7 +150,7 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
                             setStatusReason(med.status_reason || "");
                             setStatusUpdatedBy(med.updated_by || "");
                           }}
-                          className="text-[11px] font-bold text-[#005EB8] hover:underline"
+                          className="text-[0.6875rem] font-bold text-[#005EB8] hover:underline"
                         >
                           Change Status
                         </button>
@@ -159,7 +159,7 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
                   </div>
 
                   {med.status_reason && (
-                    <p className="text-[11.5px] text-slate-500 bg-white/50 px-3 py-1.5 border border-slate-100 rounded-lg">
+                    <p className="text-[0.71875rem] text-slate-500 bg-white/50 px-3 py-1.5 border border-slate-100 rounded-lg">
                       <strong className="text-slate-600">Reason:</strong>{" "}
                       {med.status_reason}
                     </p>
@@ -168,18 +168,18 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
                   {/* Inline edit panel */}
                   {isEditingStatus && (
                     <div className="mt-3 bg-white p-4 border border-slate-100 rounded-xl flex flex-col gap-3">
-                      <h5 className="text-[11px] font-bold text-[#005EB8] uppercase tracking-wider">
+                      <h5 className="text-[0.6875rem] font-bold text-[#005EB8] uppercase tracking-wider">
                         Update Status
                       </h5>
                       <div className="grid grid-cols-2 gap-3">
                         <div className="flex flex-col gap-1">
-                          <label className="text-[9px] font-bold text-gray-400 uppercase">
+                          <label className="text-[0.5625rem] font-bold text-gray-400 uppercase">
                             Status
                           </label>
                           <select
                             value={newStatusVal}
                             onChange={(e) => setNewStatusVal(e.target.value)}
-                            className="px-2.5 py-1.5 text-[11px] border border-slate-200 rounded-lg outline-none bg-white"
+                            className="px-2.5 py-1.5 text-[0.6875rem] border border-slate-200 rounded-lg outline-none bg-white"
                           >
                             <option value="Active">Active</option>
                             <option value="Stopped">Stopped</option>
@@ -187,7 +187,7 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
                           </select>
                         </div>
                         <div className="flex flex-col gap-1">
-                          <label className="text-[9px] font-bold text-gray-400 uppercase">
+                          <label className="text-[0.5625rem] font-bold text-gray-400 uppercase">
                             Updated By
                           </label>
                           <input
@@ -196,11 +196,11 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
                             value={statusUpdatedBy}
                             onChange={(e) => setStatusUpdatedBy(e.target.value)}
                             placeholder="GP Name"
-                            className="px-2.5 py-1.5 text-[11px] border border-slate-200 rounded-lg outline-none"
+                            className="px-2.5 py-1.5 text-[0.6875rem] border border-slate-200 rounded-lg outline-none"
                           />
                         </div>
                         <div className="col-span-2 flex flex-col gap-1">
-                          <label className="text-[9px] font-bold text-gray-400 uppercase">
+                          <label className="text-[0.5625rem] font-bold text-gray-400 uppercase">
                             Reason
                           </label>
                           <input
@@ -209,7 +209,7 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
                             value={statusReason}
                             onChange={(e) => setStatusReason(e.target.value)}
                             placeholder="e.g. side effects resolved"
-                            className="px-2.5 py-1.5 text-[11px] border border-slate-200 rounded-lg outline-none"
+                            className="px-2.5 py-1.5 text-[0.6875rem] border border-slate-200 rounded-lg outline-none"
                           />
                         </div>
                       </div>
@@ -217,14 +217,14 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
                         <button
                           type="button"
                           onClick={() => setUpdatingItemId(null)}
-                          className="px-3 py-1.5 text-[10px] font-bold border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500"
+                          className="px-3 py-1.5 text-[0.625rem] font-bold border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500"
                         >
                           Cancel
                         </button>
                         <button
                           type="button"
                           onClick={() => handleUpdateMedicationStatus(med.id)}
-                          className="px-3.5 py-1.5 text-[10px] font-bold bg-[#005EB8] hover:bg-[#004A99] text-white rounded-lg"
+                          className="px-3.5 py-1.5 text-[0.625rem] font-bold bg-[#005EB8] hover:bg-[#004A99] text-white rounded-lg"
                         >
                           Save Status
                         </button>
@@ -232,7 +232,7 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
                     </div>
                   )}
 
-                  <div className="flex justify-between items-center text-[10px] text-slate-400 mt-2 font-semibold border-t border-slate-100/50 pt-2">
+                  <div className="flex justify-between items-center text-[0.625rem] text-slate-400 mt-2 font-semibold border-t border-slate-100/50 pt-2">
                     <span>Updated By: {med.updated_by || "Unknown"}</span>
                     <span>
                       Logged: {new Date(med.created_at).toLocaleDateString()}
@@ -248,16 +248,16 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
       {/* Form view */}
       <form
         onSubmit={handleAddMedication}
-        className="w-[360px] bg-slate-50/50 p-6 overflow-y-auto shrink-0 flex flex-col justify-between"
+        className="w-[22.5rem] bg-slate-50/50 p-6 overflow-y-auto shrink-0 flex flex-col justify-between"
       >
         <div className="flex flex-col gap-4">
-          <h3 className="text-[12px] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+          <h3 className="text-[0.75rem] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
             <PlusCircle className="w-4 h-4 text-[#005EB8]" /> Add Medication
           </h3>
 
           <div className="flex flex-col gap-3">
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+              <label className="text-[0.6875rem] font-bold text-gray-500 uppercase tracking-wider">
                 Drug Name
               </label>
               <input
@@ -266,12 +266,12 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
                 value={medDrugName}
                 onChange={(e) => setMedDrugName(e.target.value)}
                 placeholder="e.g. Ramipril"
-                className="px-4.5 py-2 text-[13px] border border-gray-200 rounded-xl focus:border-[#005EB8] outline-none bg-white"
+                className="px-4.5 py-2 text-[0.8125rem] border border-gray-200 rounded-xl focus:border-[#005EB8] outline-none bg-white"
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+              <label className="text-[0.6875rem] font-bold text-gray-500 uppercase tracking-wider">
                 Dosage
               </label>
               <input
@@ -280,12 +280,12 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
                 value={medDosage}
                 onChange={(e) => setMedDosage(e.target.value)}
                 placeholder="e.g. 5mg"
-                className="px-4.5 py-2 text-[13px] border border-gray-200 rounded-xl focus:border-[#005EB8] outline-none bg-white"
+                className="px-4.5 py-2 text-[0.8125rem] border border-gray-200 rounded-xl focus:border-[#005EB8] outline-none bg-white"
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+              <label className="text-[0.6875rem] font-bold text-gray-500 uppercase tracking-wider">
                 Frequency
               </label>
               <input
@@ -294,18 +294,18 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
                 value={medFrequency}
                 onChange={(e) => setMedFrequency(e.target.value)}
                 placeholder="e.g. Once Daily"
-                className="px-4.5 py-2 text-[13px] border border-gray-200 rounded-xl focus:border-[#005EB8] outline-none bg-white"
+                className="px-4.5 py-2 text-[0.8125rem] border border-gray-200 rounded-xl focus:border-[#005EB8] outline-none bg-white"
               />
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
+              <label className="text-[0.6875rem] font-bold text-gray-500 uppercase tracking-wider">
                 Status
               </label>
               <select
                 value={medStatus}
                 onChange={(e) => setMedStatus(e.target.value)}
-                className="px-4.5 py-2 text-[13px] border border-gray-200 rounded-xl focus:border-[#005EB8] outline-none bg-white"
+                className="px-4.5 py-2 text-[0.8125rem] border border-gray-200 rounded-xl focus:border-[#005EB8] outline-none bg-white"
               >
                 <option value="Active">Active</option>
                 <option value="Stopped">Stopped</option>
@@ -318,7 +318,7 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
         <button
           type="submit"
           disabled={isSavingMedication}
-          className="w-full mt-6 py-2.5 bg-[#005EB8] hover:bg-[#004A99] text-white font-bold text-[13px] rounded-xl shadow-md transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full mt-6 py-2.5 bg-[#005EB8] hover:bg-[#004A99] text-white font-bold text-[0.8125rem] rounded-xl shadow-md transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {isSavingMedication && (
             <Loader2 className="w-3.5 h-3.5 animate-spin" />

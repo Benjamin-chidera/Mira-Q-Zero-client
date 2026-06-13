@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
-import { Filter } from 'lucide-react';
+// import { Filter } from 'lucide-react';
 import { PatientCardMenu } from '../PatientCardMenu';
 import { usePatientStore } from '@/store/medTech/patient.store';
+import useAuthStore from '@/store/auth.store';
 
 interface PatientListProps {
   setSelectedPatient: (patient: any) => void;
@@ -10,10 +11,11 @@ interface PatientListProps {
 
 export function PatientList({ setSelectedPatient, setShowDetail }: PatientListProps) {
   const { patients, isLoading, error, fetchPatients, hydratePatient } = usePatientStore();
+  const { user } = useAuthStore();
 
   useEffect(() => {
-    fetchPatients("B82617");
-  }, [fetchPatients]);
+    fetchPatients("B82617", user?.id);
+  }, [fetchPatients, user?.id]);
 
   const getStatusColor = (status: string) => {
     switch(status) {
@@ -28,16 +30,16 @@ export function PatientList({ setSelectedPatient, setShowDetail }: PatientListPr
     <div className="flex-1 flex flex-col gap-6 overflow-y-auto pr-2 pb-4">
        <div className="flex items-center justify-between pt-2">
           <div className="flex items-center gap-4">
-             <h2 className="text-[22px] font-bold text-gray-900 tracking-tight">Patient Directory</h2>
-             <span className="bg-[#F1F5F9] text-[#64748B] text-[11px] px-2.5 py-1 rounded font-bold tracking-wide">
+             <h2 className="text-[1.375rem] font-bold text-gray-900 tracking-tight">Patient Directory</h2>
+             <span className="bg-[#F1F5F9] text-[#64748B] text-[0.6875rem] px-2.5 py-1 rounded font-bold tracking-wide">
                 {isLoading ? 'Loading...' : `${patients.length} active`}
              </span>
           </div>
-          <div className="flex gap-2.5">
-             <button className="flex items-center gap-2 border border-gray-200 bg-white px-3.5 py-1.5 text-[13px] font-bold text-gray-700 rounded shadow-sm hover:bg-gray-50 transition-colors">
+          {/* <div className="flex gap-2.5">
+             <button className="flex items-center gap-2 border border-gray-200 bg-white px-3.5 py-1.5 text-[0.8125rem] font-bold text-gray-700 rounded shadow-sm hover:bg-gray-50 transition-colors">
                 <Filter className="w-3.5 h-3.5" /> Filter
              </button>
-          </div>
+          </div> */}
        </div>
 
        {error && (
@@ -51,7 +53,7 @@ export function PatientList({ setSelectedPatient, setShowDetail }: PatientListPr
             Fetching patients from NHS PDS API...
          </div>
        ) : (
-         <div className="grid grid-cols-2 gap-5">
+         <div className="grid grid-cols-3 gap-5">
             {patients.map(patient => {
                const colors = getStatusColor(patient.status);
                const initials = patient.name.split(' ').map((n: string) => n[0]).join('');
@@ -70,7 +72,7 @@ export function PatientList({ setSelectedPatient, setShowDetail }: PatientListPr
                   >
                      <div className={`absolute left-0 top-0 bottom-0 w-1 ${colors.bar}`}></div>
                       <div className="flex justify-between items-start mb-4">
-                         <span className={`${colors.bg} ${colors.text} text-[9px] font-bold px-2 py-1 rounded uppercase tracking-wider`}>
+                         <span className={`${colors.bg} ${colors.text} text-[0.5625rem] font-bold px-2 py-1 rounded uppercase tracking-wider`}>
                             {patient.status}
                          </span>
                          <PatientCardMenu patient={patient} />
@@ -80,17 +82,17 @@ export function PatientList({ setSelectedPatient, setShowDetail }: PatientListPr
                           {initials}
                         </div>
                         <div>
-                          <h3 className="font-bold text-gray-900 text-[15px] leading-snug">{patient.name}</h3>
-                          <p className="text-[12px] text-gray-500">{patient.age} yrs • {patient.gender}</p>
-                          <p className="text-[10px] text-[#005EB8] font-bold mt-0.5 tracking-wider">NHS: {patient.nhsNumber || 'Unknown'}</p>
+                          <h3 className="font-bold text-gray-900 text-[0.9375rem] leading-snug">{patient.name}</h3>
+                          <p className="text-[0.75rem] text-gray-500">{patient.age} yrs • {patient.gender}</p>
+                          <p className="text-[0.625rem] text-[#005EB8] font-bold mt-0.5 tracking-wider">NHS: {patient.nhsNumber || 'Unknown'}</p>
                         </div>
                      </div>
-                     <p className="text-[13px] text-gray-500 mb-6 flex-1 leading-relaxed line-clamp-2">
+                     <p className="text-[0.8125rem] text-gray-500 mb-6 flex-1 leading-relaxed line-clamp-2">
                         {patient.reason}
                      </p>
                      <div className="flex justify-between items-center mt-auto">
-                        <span className="text-[11px] font-medium text-gray-400">Under: Dr. West End</span>
-                        <button className="text-[#004A99] text-[13px] font-bold hover:text-blue-800 transition-colors">View Profile &rarr;</button>
+                        <span className="text-[0.6875rem] font-medium text-gray-400">Under: {patient.doctorName || "Not assigned"}</span>
+                        <button className="text-[#004A99] text-[0.8125rem] font-bold hover:text-blue-800 transition-colors">View Profile &rarr;</button>
                      </div>
                   </div>
                );

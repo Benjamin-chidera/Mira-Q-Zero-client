@@ -57,7 +57,7 @@ const ResultCard = ({
             </div>
             {matchStatus && matchStatus !== "No Slots" && (
               <span className={cn(
-                "text-[9px] font-bold px-1.5 py-0.5 rounded border uppercase tracking-wide",
+                "text-[0.5625rem] font-bold px-1.5 py-0.5 rounded border uppercase tracking-wide",
                 statusBadge[matchStatus],
               )}>
                 {matchStatus}
@@ -88,7 +88,7 @@ const ResultCard = ({
 
         {/* Inline slot picker */}
         <div className="flex flex-col gap-2">
-          <span className="text-[10px] font-bold tracking-widest uppercase text-gray-500 flex items-center gap-1.5">
+          <span className="text-[0.625rem] font-bold tracking-widest uppercase text-gray-500 flex items-center gap-1.5">
             <Clock className="w-3 h-3" />
             Select an Appointment Slot
           </span>
@@ -115,7 +115,7 @@ const ResultCard = ({
                     {slot.date}
                   </span>
                   <span className={cn(
-                    "text-[11px] mt-0.5",
+                    "text-[0.6875rem] mt-0.5",
                     pickedSlot?.id === slot.id ? "text-[#005EB8]/80" : "text-gray-500",
                   )}>
                     {slot.time}

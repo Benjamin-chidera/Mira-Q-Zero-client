@@ -181,12 +181,12 @@ export function ChatInputBar() {
             onChange={(e) => setUrlInputValue(e.target.value)}
             onKeyDown={handleUrlKeyDown}
             placeholder="Paste a URL (e.g. https://nice.org.uk/guidance/ng196)"
-            className="flex-1 bg-transparent text-[13px] text-gray-800 outline-none placeholder:text-gray-400"
+            className="flex-1 bg-transparent text-[0.8125rem] text-gray-800 outline-none placeholder:text-gray-400"
           />
           <button
             onClick={handleAddUrl}
             disabled={!urlInputValue.trim()}
-            className="text-[12px] font-semibold text-[#005EB8] hover:text-[#004A99] disabled:text-gray-300 transition-colors"
+            className="text-[0.75rem] font-semibold text-[#005EB8] hover:text-[#004A99] disabled:text-gray-300 transition-colors"
           >
             Add
           </button>
@@ -230,7 +230,7 @@ export function ChatInputBar() {
                     fileInputRef.current?.click();
                     setShowAttachMenu(false);
                   }}
-                  className="flex items-center gap-3 px-3 py-2 text-[13px] font-semibold text-gray-700 hover:bg-gray-50 rounded-lg transition-colors text-left"
+                  className="flex items-center gap-3 px-3 py-2 text-[0.8125rem] font-semibold text-gray-700 hover:bg-gray-50 rounded-lg transition-colors text-left"
                 >
                   <FileText className="w-4 h-4 text-[#005EB8]" />
                   Upload PDF
@@ -240,7 +240,7 @@ export function ChatInputBar() {
                     imageInputRef.current?.click();
                     setShowAttachMenu(false);
                   }}
-                  className="flex items-center gap-3 px-3 py-2 text-[13px] font-semibold text-gray-700 hover:bg-gray-50 rounded-lg transition-colors text-left"
+                  className="flex items-center gap-3 px-3 py-2 text-[0.8125rem] font-semibold text-gray-700 hover:bg-gray-50 rounded-lg transition-colors text-left"
                 >
                   <ImageIcon className="w-4 h-4 text-green-600" />
                   Upload Image
@@ -250,7 +250,7 @@ export function ChatInputBar() {
                     setShowUrlInput(true);
                     setShowAttachMenu(false);
                   }}
-                  className="flex items-center gap-3 px-3 py-2 text-[13px] font-semibold text-gray-700 hover:bg-gray-50 rounded-lg transition-colors text-left"
+                  className="flex items-center gap-3 px-3 py-2 text-[0.8125rem] font-semibold text-gray-700 hover:bg-gray-50 rounded-lg transition-colors text-left"
                 >
                   <LinkIcon className="w-4 h-4 text-indigo-500" />
                   Add URL
@@ -284,7 +284,7 @@ export function ChatInputBar() {
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="Ask a clinical question or drop a file..."
-            className="flex-1 bg-transparent text-[14px] text-gray-800 outline-none placeholder:text-gray-400"
+            className="flex-1 bg-transparent text-[0.875rem] text-gray-800 outline-none placeholder:text-gray-400"
             disabled={isLoading}
           />
 

@@ -8,6 +8,9 @@ interface Props {
 const ProtectedRoute = ({ children }: Props) => {
   const { user } = useAuthStore();
 
+  console.log(user);
+  
+
   if (!user) {
     return <Navigate to="/login" replace />;
   }

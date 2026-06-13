@@ -21,9 +21,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import useConnectStore from "@/store/connect.store";
-import { VoiceAgentModal } from "./VoiceAgentModal";
-import { BookingDetailsFilling } from "./booking-details-filling";
-import { MedicalRecordSharingModal } from "./medical-record-sharing";
 
 const Sidebar = () => {
   const [date, setDate] = useState<DateRange | undefined>({
@@ -35,23 +32,15 @@ const Sidebar = () => {
     setRadius,
     fetchGpsByRadius,
     loading,
-    selectedGp,
-    setOpenVoiceAgent,
-    openVoiceAgent,
-    verifiedNhsNumber,
-    verifiedPatientName,
-    verifiedPatientEmail,
-    verifiedPatientPhone,
-    selectedSlot,
   } = useConnectStore();
   const [postCode, setPostCode] = useState("");
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("17:00");
 
   return (
-    <div className="w-80 bg-[#F5FAFF] text-black h-screen p-6 flex flex-col gap-8 border-r border-gray-200 overflow-y-auto">
+    <div className="w-60 bg-[#F5FAFF] text-black h-screen p-6 flex flex-col gap-8 border-r border-gray-200 overflow-y-auto">
       <div>
-        <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+        <h1 className="text-xl font-bold tracking-tight text-gray-900">
           Find and Connect
         </h1>
         <p className="text-sm text-gray-500 mt-1">
@@ -101,7 +90,7 @@ const Sidebar = () => {
           }}
           className="py-2 [--slider-indicator:#005EB8] [--slider-thumb-ring:#005EB8]"
         />
-        <div className="flex justify-between text-[10px] text-gray-400 font-medium">
+        <div className="flex justify-between text-[0.625rem] text-gray-400 font-medium">
           <span>0 mi</span>
           <span>50 mi</span>
         </div>
@@ -161,7 +150,7 @@ const Sidebar = () => {
         </Label>
         <div className="flex items-center gap-2">
           <div className="flex-1">
-            <p className="text-[10px] text-gray-400 mb-1 font-medium uppercase">
+            <p className="text-[0.625rem] text-gray-400 mb-1 font-medium uppercase">
               From
             </p>
             <Input
@@ -172,7 +161,7 @@ const Sidebar = () => {
             />
           </div>
           <div className="flex-1">
-            <p className="text-[10px] text-gray-400 mb-1 font-medium uppercase">
+            <p className="text-[0.625rem] text-gray-400 mb-1 font-medium uppercase">
               To
             </p>
             <Input
@@ -203,27 +192,6 @@ const Sidebar = () => {
           {loading ? "Searching..." : "Apply"}
         </Button>
       </div>
-
-      {/* Booking Details Modal */}
-      <BookingDetailsFilling />
-
-      {/* Medical Record Sharing Modal */}
-      <MedicalRecordSharingModal />
-
-      <VoiceAgentModal
-        open={openVoiceAgent}
-        onClose={() => setOpenVoiceAgent(false)}
-        bookingData={{
-          patientName: verifiedPatientName,
-          email: verifiedPatientEmail,
-          phone: verifiedPatientPhone,
-        }}
-        gpName={selectedGp?.name ?? "your GP"}
-        odsCode={selectedGp?.odsCode ?? ""}
-        slotId={selectedSlot?.id ?? null}
-        nhsNumber={verifiedNhsNumber}
-        practitionerName={selectedSlot?.practitioner_name ?? selectedGp?.practitionerName}
-      />
     </div>
   );
 };

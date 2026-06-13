@@ -3,15 +3,15 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import FindAndConnect from "./pages/user/find_and_connect/page";
 import { PractitionerConsultationPage } from "./pages/practioner/Consultation/page";
 import MedTechDashboard from "./pages/practioner/different-feature/mira/page/dashboard/page";
-import FeatureSwitch from "./components/FeatureSwitch/Page-feature-Switch";
 import LoginPage from "./pages/auth/LoginPage";
 import ProtectedRoute from "./components/ProtectedRoute";
+import FeatureSwitch from "./components/FeatureSwitch/Page-feature-Switch";
 
 function App() {
   return (
-    <main className="">
+    <main>
       <BrowserRouter>
-        <FeatureSwitch />
+        {/* <FeatureSwitch /> */}
         <Routes>
           {/* Public */}
           <Route path="/" element={<FindAndConnect />} />
