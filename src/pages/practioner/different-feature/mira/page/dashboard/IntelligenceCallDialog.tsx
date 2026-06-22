@@ -12,7 +12,7 @@ import {
   Send,
 } from "lucide-react";
 import { AlertDialog, AlertDialogContent } from "@/components/ui/alert-dialog";
-import medPic from "@/assets/medPic.jpeg";
+import medPic from "@/assets/medpic.jpeg";
 import { useAIResearcherStore } from "@/store/aiResearcher.store";
 import useAuthStore from "@/store/auth.store";
 
