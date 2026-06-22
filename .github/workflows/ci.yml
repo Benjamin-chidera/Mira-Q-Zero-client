@@ -17,22 +17,18 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
-          cache-dependency-path: client/package-lock.json
+          cache-dependency-path: package-lock.json
 
       - name: Install Dependencies
-        working-directory: client
         run: npm ci
 
       - name: Run Linter
-        working-directory: client
         run: npm run lint -- --max-warnings=100
 
       - name: Run Tests
-        working-directory: client
         run: npm run test:run
 
       - name: Build Project
-        working-directory: client
         run: npm run build
