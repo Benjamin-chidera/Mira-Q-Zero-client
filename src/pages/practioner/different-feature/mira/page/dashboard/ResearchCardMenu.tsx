@@ -4,9 +4,22 @@ import { MoreVertical, Edit, Trash2, CheckCircle2, XCircle, Archive } from 'luci
 interface ResearchCardMenuProps {
   researchId: string;
   researchTitle: string;
+  onUpdate?: () => void;
+  onDelete?: () => void;
+  onComplete?: () => void;
+  onFailure?: () => void;
+  onAbandoned?: () => void;
 }
 
-export function ResearchCardMenu({ researchId, researchTitle }: ResearchCardMenuProps) {
+export function ResearchCardMenu({
+  researchId,
+  researchTitle,
+  onUpdate,
+  onDelete,
+  onComplete,
+  onFailure,
+  onAbandoned,
+}: ResearchCardMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, right: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -26,7 +39,6 @@ export function ResearchCardMenu({ researchId, researchTitle }: ResearchCardMenu
   function handleToggle(e: React.MouseEvent) {
     e.stopPropagation();
     if (!isOpen && buttonRef.current) {
-      // Compute fixed position from button rect so overflow-hidden doesn't clip the menu
       const rect = buttonRef.current.getBoundingClientRect();
       setMenuPosition({
         top: rect.bottom + 4,
@@ -37,8 +49,19 @@ export function ResearchCardMenu({ researchId, researchTitle }: ResearchCardMenu
   }
 
   function handleAction(action: string) {
-    // TODO: wire up real actions
-    console.log(`Action: ${action} for research ${researchId} - ${researchTitle}`);
+    if (action === 'update' && onUpdate) {
+      onUpdate();
+    } else if (action === 'delete' && onDelete) {
+      onDelete();
+    } else if (action === 'complete' && onComplete) {
+      onComplete();
+    } else if (action === 'failure' && onFailure) {
+      onFailure();
+    } else if (action === 'abandoned' && onAbandoned) {
+      onAbandoned();
+    } else {
+      console.log(`Action: ${action} for research ${researchId} - ${researchTitle}`);
+    }
     setIsOpen(false);
   }
 
@@ -91,7 +114,7 @@ export function ResearchCardMenu({ researchId, researchTitle }: ResearchCardMenu
         <div
           ref={menuRef}
           style={{ position: 'fixed', top: menuPosition.top, right: menuPosition.right }}
-          className="z-200 w-[13.125rem] bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden"
+          className="z-200 w-52.5 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {menuItems.map((item) => {

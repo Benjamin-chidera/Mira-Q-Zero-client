@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import type { ReactNode } from "react";
-import { FileText, Plus } from "lucide-react";
+import { FileText, Plus, ExternalLink } from "lucide-react";
 import type { ChatMessage } from "@/store/aiResearcher.store";
 import { AttachmentPreview } from "./AttachmentPreview";
 import mira from "@/assets/medpic.jpeg";
@@ -71,21 +71,47 @@ export function ChatMessageBubble({ message }: ChatMessageBubbleProps) {
               {message.sources.map((source) => {
                 // PDF sources get a blue style, protocols get a gray style
                 const isPdf = source.type === "pdf";
-                return (
-                  <button
-                    key={source.id}
-                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded text-[0.6875rem] font-semibold transition-colors ${
-                      isPdf
-                        ? "bg-[#EFF6FF] text-[#005EB8] border border-[#BFDBFE] hover:bg-blue-100"
-                        : "bg-[#F8FAFC] text-gray-600 border border-gray-200 hover:bg-gray-100"
-                    }`}
-                  >
+                const isUrl = source.type === "url" || !!source.url;
+                
+                const className = `flex items-center gap-1.5 px-2.5 py-1 rounded text-[0.6875rem] font-semibold transition-colors cursor-pointer select-none ${
+                  isPdf
+                    ? "bg-[#EFF6FF] text-[#005EB8] border border-[#BFDBFE] hover:bg-blue-100"
+                    : "bg-[#F8FAFC] text-gray-600 border border-gray-200 hover:bg-gray-100"
+                }`;
+
+                const content = (
+                  <>
                     {isPdf ? (
                       <FileText className="w-3 h-3" />
+                    ) : isUrl ? (
+                      <ExternalLink className="w-3 h-3" />
                     ) : (
                       <Plus className="w-3 h-3" />
                     )}
                     {source.label}
+                  </>
+                );
+
+                if (source.url) {
+                  return (
+                    <a
+                      key={source.id}
+                      href={source.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={className}
+                    >
+                      {content}
+                    </a>
+                  );
+                }
+
+                return (
+                  <button
+                    key={source.id}
+                    className={className}
+                  >
+                    {content}
                   </button>
                 );
               })}

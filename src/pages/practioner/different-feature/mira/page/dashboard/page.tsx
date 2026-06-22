@@ -16,6 +16,12 @@ export default function MedTechDashboard() {
   
   // Dialog State
   const [isCallDialogOpen, setIsCallDialogOpen] = useState(false);
+  const [callConfig, setCallConfig] = useState<{
+    isTransient: boolean;
+    transientConversationId: string;
+    messages: any[];
+    setMessages: React.Dispatch<React.SetStateAction<any[]>>;
+  } | null>(null);
   
   // Selection State
   const [selectedPatient, setSelectedPatient] = useState<any>(null);
@@ -23,11 +29,17 @@ export default function MedTechDashboard() {
   
   // Case History State
   const [caseMode, setCaseMode] = useState<'patient' | 'research'>('patient');
-  const [caseFilter, setCaseFilter] = useState<'all' | 'success' | 'failure' | 'abandoned'>('all');
+  const [caseFilter, setCaseFilter] = useState<'all' | 'success' | 'failure' | 'abandoned' | 'deleted'>('all');
   
   // Notification State
   const [showNotifications, setShowNotifications] = useState(false);
   const [selectedNotification, setSelectedNotification] = useState<any>(null);
+
+  // When call dialog is closed, reset callConfig
+  const handleCloseCall = () => {
+    setIsCallDialogOpen(false);
+    setCallConfig(null);
+  };
 
   return (
     <div className="flex h-screen bg-[#F8FAFC] font-sans overflow-hidden">
@@ -63,6 +75,9 @@ export default function MedTechDashboard() {
                  setSelectedResearchItem={setSelectedResearchItem} 
                  setShowDetail={setShowDetail}
                  selectedResearchItem={selectedResearchItem}
+                 isCallDialogOpen={isCallDialogOpen}
+                 setIsCallDialogOpen={setIsCallDialogOpen}
+                 setCallConfig={setCallConfig}
                />
             )}
 
@@ -98,7 +113,11 @@ export default function MedTechDashboard() {
       {/* Full-Screen Intelligence Call Dialog */}
       <IntelligenceCallDialog 
          isOpen={isCallDialogOpen} 
-         onClose={() => setIsCallDialogOpen(false)} 
+         onClose={handleCloseCall} 
+         isTransient={callConfig?.isTransient}
+         transientConversationId={callConfig?.transientConversationId}
+         transientMessages={callConfig?.messages}
+         setTransientMessages={callConfig?.setMessages}
       />
 
     </div>

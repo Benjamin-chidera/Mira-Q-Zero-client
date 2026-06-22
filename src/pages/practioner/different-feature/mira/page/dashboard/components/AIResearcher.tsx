@@ -88,7 +88,7 @@ export function AIResearcher({ isCallDialogOpen, setIsCallDialogOpen }: AIResear
       {/* ── Grid List of Conversation Cards (Sections) ── */}
       <div className="flex-1 overflow-y-auto px-8 pb-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {conversations.map((conv) => {
+          {conversations.filter(c => !c.id.startsWith("research_")).map((conv) => {
             const isCall = conv.type === "call";
             const dateStr = `${conv.date} • ${conv.timestamp}`;
             

@@ -41,6 +41,8 @@ export interface LookupConversation {
   date: string;
   timestamp: string;
   type: "chat" | "call";
+  status?: string;
+  status_reason?: string;
   messages: ChatMessage[];
 }
 
@@ -62,7 +64,8 @@ interface AIResearcherStore {
   fetchConversations: (practitionerId: number) => Promise<void>;
   fetchMessages: (conversationId: string) => Promise<void>;
   createConversation: (type: "chat" | "call", title?: string) => Promise<void>;
-  deleteConversation: (id: string) => Promise<void>;
+  deleteConversation: (id: string, reason?: string) => Promise<void>;
+  updateConversationStatus: (id: string, status: string, reason?: string) => Promise<void>;
   setActiveConversationId: (id: string | null) => void;
   addPendingAttachment: (attachment: ChatAttachment) => void;
   removePendingAttachment: (id: string) => void;
@@ -175,89 +178,6 @@ export const useAIResearcherStore = create<AIResearcherStore>((set, get) => ({
         statusMessage: ""
       });
     });
-
-    newSocket.on("mira:voice_transcript", (data: {
-      conversation_id: string;
-      role: "user" | "system";
-      content: string;
-    }) => {
-      const { activeConversationId, conversations } = get();
-      if (data.conversation_id !== activeConversationId) return;
-
-      const newMessage: ChatMessage = {
-        id: generateId(),
-        role: data.role === "system" ? "agent" : data.role,
-        content: data.content,
-        timestamp: getCurrentTime(),
-        isRead: true,
-        attachments: [],
-        sources: []
-      };
-
-      const updated = conversations.map((conv) => {
-        if (conv.id === data.conversation_id) {
-          return {
-            ...conv,
-            messages: [...conv.messages, newMessage],
-            preview: data.content.substring(0, 100) + "..."
-          };
-        }
-        return conv;
-      });
-
-      set({ conversations: updated });
-    });
-
-    newSocket.on("mira:voice_response", (data: {
-      conversation_id: string;
-      role: "agent";
-      content: string;
-      audio: string;
-    }) => {
-      const { activeConversationId, conversations } = get();
-      if (data.conversation_id !== activeConversationId) return;
-
-      const agentMessage: ChatMessage = {
-        id: generateId(),
-        role: "agent",
-        content: data.content,
-        timestamp: getCurrentTime(),
-        isRead: true,
-        attachments: [],
-        sources: []
-      };
-
-      const updated = conversations.map((conv) => {
-        if (conv.id === data.conversation_id) {
-          return {
-            ...conv,
-            messages: [...conv.messages, agentMessage],
-            preview: data.content.substring(0, 100) + "..."
-          };
-        }
-        return conv;
-      });
-
-      set({
-        conversations: updated,
-        isVoiceProcessing: false,
-        statusMessage: ""
-      });
-
-      // Dispatch custom audio playing event for the component to catch
-      const playEvent = new CustomEvent("mira:play_audio", { detail: { audio: data.audio } });
-      window.dispatchEvent(playEvent);
-    });
-
-    newSocket.on("mira:call_docs_processed", (data: {
-      conversation_id: string;
-      success: boolean;
-    }) => {
-      if (data.conversation_id === get().activeConversationId) {
-        set({ isVoiceProcessing: false, statusMessage: "" });
-      }
-    });
-
     set({ socket: newSocket });
   },
 
@@ -334,7 +254,7 @@ export const useAIResearcherStore = create<AIResearcherStore>((set, get) => ({
     }
   },
 
-  deleteConversation: async (id) => {
+  deleteConversation: async (id, reason) => {
     set((state) => {
       const updated = state.conversations.filter((c) => c.id !== id);
       const nextActiveId = state.activeConversationId === id ? null : state.activeConversationId;
@@ -345,10 +265,30 @@ export const useAIResearcherStore = create<AIResearcherStore>((set, get) => ({
     });
 
     try {
-      const url = `http://${window.location.hostname}:8000/mira/research/conversations/${id}`;
+      const url = `http://${window.location.hostname}:8000/mira/research/conversations/${id}${
+        reason ? `?reason=${encodeURIComponent(reason)}` : ""
+      }`;
       await axios.delete(url);
     } catch (err) {
       console.error("[AI Researcher] Failed to delete conversation on server:", err);
+    }
+  },
+
+  updateConversationStatus: async (id, status, reason) => {
+    set((state) => ({
+      conversations: state.conversations.map((c) => {
+        if (c.id === id) {
+          return { ...c, status, status_reason: reason };
+        }
+        return c;
+      })
+    }));
+
+    try {
+      const url = `http://${window.location.hostname}:8000/mira/research/conversations/${id}/status`;
+      await axios.patch(url, { status, reason });
+    } catch (err) {
+      console.error("[AI Researcher] Failed to update conversation status on server:", err);
     }
   },
 

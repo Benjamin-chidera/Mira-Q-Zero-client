@@ -11,7 +11,7 @@ function App() {
   return (
     <main>
       <BrowserRouter>
-        {/* <FeatureSwitch /> */}
+        <FeatureSwitch />
         <Routes>
           {/* Public */}
           <Route path="/" element={<FindAndConnect />} />

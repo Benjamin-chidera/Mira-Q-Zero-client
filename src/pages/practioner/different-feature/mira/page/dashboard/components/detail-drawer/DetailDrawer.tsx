@@ -287,16 +287,7 @@ export function DetailDrawer({
         </div>
       )}
 
-      {/* Floating action button - Speak with Mira (Only shown when the dock is NOT visible) */}
-      {!(activeView === "patients" && selectedPatient && activePatientData) && (
-        <button
-          onClick={() => setIsCallDialogOpen(true)}
-          className="absolute bottom-6 right-6 bg-[#005EB8] hover:bg-[#004A99] text-white px-5 py-2.5 rounded-full text-[0.8125rem] font-bold shadow-lg hover:shadow-xl transition-all hover:scale-105 z-50 flex items-center gap-2"
-        >
-          <Mic className="w-4 h-4" />
-          Speak with Mira
-        </button>
-      )}
+
     </div>
   );
 }

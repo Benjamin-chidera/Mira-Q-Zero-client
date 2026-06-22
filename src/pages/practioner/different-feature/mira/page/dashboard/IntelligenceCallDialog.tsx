@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, Fragment } from "react";
+import type { ReactNode } from "react";
 import {
   Phone,
   PhoneOff,
@@ -15,9 +16,158 @@ import medPic from "@/assets/medPic.jpeg";
 import { useAIResearcherStore } from "@/store/aiResearcher.store";
 import useAuthStore from "@/store/auth.store";
 
+function parseInlineCallStyling(text: string): ReactNode[] {
+  const regex = /(\*\*.*?\*\*|\[.*?\]\(.*?\)|<https?:\/\/.*?>)/g;
+  const parts = text.split(regex);
+
+  return parts.map((part, index) => {
+    if (part.startsWith("**") && part.endsWith("**")) {
+      const boldText = part.slice(2, -2);
+      return (
+        <strong key={index} className="font-bold text-gray-950">
+          {boldText}
+        </strong>
+      );
+    }
+
+    if (part.startsWith("[") && part.includes("](")) {
+      const closingBracketIndex = part.indexOf("]");
+      const anchorText = part.slice(1, closingBracketIndex);
+      const url = part.slice(closingBracketIndex + 2, -1);
+      return (
+        <a
+          key={index}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[#005EB8] hover:underline font-bold inline-flex items-center gap-0.5 cursor-pointer"
+        >
+          {anchorText}
+        </a>
+      );
+    }
+
+    if (part.startsWith("<") && part.endsWith(">")) {
+      const url = part.slice(1, -1);
+      return (
+        <a
+          key={index}
+          href={url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[#005EB8] hover:underline font-bold inline-flex items-center gap-0.5 cursor-pointer"
+        >
+          {url}
+        </a>
+      );
+    }
+
+    const urlRegex = /(https?:\/\/[^\s\)]+)/g;
+    if (urlRegex.test(part)) {
+      const subparts = part.split(urlRegex);
+      return (
+        <span key={index}>
+          {subparts.map((subpart, subIndex) => {
+            if (
+              subpart.startsWith("http://") ||
+              subpart.startsWith("https://")
+            ) {
+              let cleanUrl = subpart;
+              let trailing = "";
+              if (cleanUrl.endsWith(".") || cleanUrl.endsWith(",")) {
+                trailing = cleanUrl.slice(-1);
+                cleanUrl = cleanUrl.slice(0, -1);
+              }
+              return (
+                <Fragment key={subIndex}>
+                  <a
+                    href={cleanUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#005EB8] hover:underline font-bold inline-flex items-center gap-0.5 cursor-pointer"
+                  >
+                    {cleanUrl}
+                  </a>
+                  {trailing}
+                </Fragment>
+              );
+            }
+            return <span key={subIndex}>{subpart}</span>;
+          })}
+        </span>
+      );
+    }
+
+    return <span key={index}>{part}</span>;
+  });
+}
+
+function renderCallMarkdown(content: string) {
+  const lines = content.split("\n");
+
+  return lines.map((line, lineIndex) => {
+    if (/^[=-]{3,}$/.test(line.trim())) {
+      return <hr key={lineIndex} className="my-2 border-gray-200" />;
+    }
+
+    const headingMatch = line.match(/^(#{1,6})\s+(.*)$/);
+    if (headingMatch) {
+      const level = headingMatch[1].length;
+      const text = headingMatch[2];
+      const parsedText = parseInlineCallStyling(text);
+
+      const headerClasses =
+        level === 1
+          ? "text-[1.125rem] font-bold text-gray-950 mt-4 mb-2 font-heading"
+          : level === 2
+            ? "text-[1.0rem] font-bold text-gray-900 mt-3 mb-2 font-heading"
+            : "text-[0.9rem] font-bold text-gray-800 mt-2 mb-1.5 font-heading";
+
+      return (
+        <div key={lineIndex} className={headerClasses}>
+          {parsedText}
+        </div>
+      );
+    }
+
+    const bulletMatch = line.match(/^(\*|-)\s+(.*)$/);
+    if (bulletMatch) {
+      const text = bulletMatch[2];
+      return (
+        <div
+          key={lineIndex}
+          className="flex gap-2 pl-3 py-0.5 text-[0.8125rem] leading-relaxed text-gray-800"
+        >
+          <span className="text-[#005EB8] shrink-0 mt-1 select-none text-xs">
+            •
+          </span>
+          <span className="flex-1">{parseInlineCallStyling(text)}</span>
+        </div>
+      );
+    }
+
+    if (line.trim() === "") {
+      return <div key={lineIndex} className="h-2" />;
+    }
+
+    return (
+      <div
+        key={lineIndex}
+        className="text-gray-800 text-[0.8125rem] leading-relaxed my-1"
+      >
+        {parseInlineCallStyling(line)}
+      </div>
+    );
+  });
+}
+
 interface IntelligenceCallDialogProps {
   isOpen: boolean;
   onClose: () => void;
+  isTransient?: boolean;
+  transientConversationId?: string;
+  transientMessages?: any[];
+  setTransientMessages?: React.Dispatch<React.SetStateAction<any[]>>;
 }
 
 interface Attachment {
@@ -37,15 +187,33 @@ function base64ToBlob(base64: string, mimeType: string): Blob {
   return new Blob([byteArray], { type: mimeType });
 }
 
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => {
+      const result = reader.result as string;
+      const base64 = result.split(",")[1];
+      resolve(base64);
+    };
+    reader.onerror = (error) => reject(error);
+  });
+}
+
 export function IntelligenceCallDialog({
   isOpen,
   onClose,
+  isTransient = false,
+  transientConversationId,
+  transientMessages,
+  setTransientMessages,
 }: IntelligenceCallDialogProps) {
   const user = useAuthStore((state) => state.user);
+  const socket = useAIResearcherStore((state) => state.socket);
   const conversations = useAIResearcherStore((state) => state.conversations);
   const activeConversationId = useAIResearcherStore((state) => state.activeConversationId);
-  const isVoiceProcessing = useAIResearcherStore((state) => state.isVoiceProcessing);
-  const statusMessage = useAIResearcherStore((state) => state.statusMessage);
+  const globalIsVoiceProcessing = useAIResearcherStore((state) => state.isVoiceProcessing);
+  const globalStatusMessage = useAIResearcherStore((state) => state.statusMessage);
   
   const startCallSession = useAIResearcherStore((state) => state.startCallSession);
   const endCallSession = useAIResearcherStore((state) => state.endCallSession);
@@ -53,7 +221,16 @@ export function IntelligenceCallDialog({
   const sendCallDocs = useAIResearcherStore((state) => state.sendCallDocs);
   const initializeSocket = useAIResearcherStore((state) => state.initializeSocket);
   const activeConversation = conversations.find((c) => c.id === activeConversationId);
-  const messages = activeConversation?.messages || [];
+  const globalMessages = activeConversation?.messages || [];
+
+  // Local state for transient mode
+  const [localIsVoiceProcessing, setLocalIsVoiceProcessing] = useState(false);
+  const [localStatusMessage, setLocalStatusMessage] = useState("");
+
+  const isVoiceProcessing = isTransient ? localIsVoiceProcessing : globalIsVoiceProcessing;
+  const statusMessage = isTransient ? localStatusMessage : globalStatusMessage;
+  const messages = isTransient ? (transientMessages || []) : globalMessages;
+  const currentConversationId = isTransient ? transientConversationId : activeConversationId;
 
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [urlInput, setUrlInput] = useState("");
@@ -64,6 +241,12 @@ export function IntelligenceCallDialog({
   const [isUserSpeaking, setIsUserSpeaking] = useState(false);
   const [isMiraSpeaking, setIsMiraSpeaking] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+
+  // Sync ref with isMuted state to prevent stale closures
+  const isMutedRef = useRef(isMuted);
+  useEffect(() => {
+    isMutedRef.current = isMuted;
+  }, [isMuted]);
 
   // Audio refs for VAD and playback
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -88,11 +271,162 @@ export function IntelligenceCallDialog({
     }
   }, [isOpen, user, initializeSocket]);
 
+  // Local socket event listeners for both transient and non-transient call modes
+  useEffect(() => {
+    console.log("[Call Dialog socket useEffect] isOpen:", isOpen, "hasSocket:", !!socket, "currentConversationId:", currentConversationId, "isTransient:", isTransient);
+    if (!socket || !isOpen) return;
+
+    const handleVoiceTranscript = (data: {
+      conversation_id: string;
+      role: "user" | "system";
+      content: string;
+    }) => {
+      console.log("[Call Dialog socket] Received mira:voice_transcript:", data, "currentConversationId:", currentConversationId);
+      if (data.conversation_id !== currentConversationId) {
+        console.warn("[Call Dialog socket] Conversation ID mismatch! data.conversation_id:", data.conversation_id, "currentConversationId:", currentConversationId);
+        return;
+      }
+
+      const newMessage = {
+        id: Math.random().toString(36),
+        role: data.role === "system" ? "agent" : data.role,
+        content: data.content,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        attachments: [],
+        sources: []
+      };
+
+      if (isTransient) {
+        if (setTransientMessages) {
+          console.log("[Call Dialog socket] Updating transient messages locally");
+          setTransientMessages((prev) => [...prev, newMessage]);
+        }
+      } else {
+        const storeMessage = {
+          ...newMessage,
+          role: (data.role === "system" ? "agent" : data.role) as "user" | "agent",
+          isRead: true,
+        };
+        const { conversations } = useAIResearcherStore.getState();
+        console.log("[Call Dialog socket] Updating store conversations for user transcript. Total conversations:", conversations.length);
+        const updated = conversations.map((conv) => {
+          if (conv.id === data.conversation_id) {
+            console.log("[Call Dialog socket] Found matching conversation in store:", conv.id);
+            return {
+              ...conv,
+              messages: [...conv.messages, storeMessage],
+              preview: data.content.substring(0, 100) + "..."
+            };
+          }
+          return conv;
+        });
+        useAIResearcherStore.setState({ conversations: updated });
+      }
+    };
+
+    const handleVoiceResponse = (data: {
+      conversation_id: string;
+      role: "agent";
+      content: string;
+      audio: string;
+    }) => {
+      console.log("[Call Dialog socket] Received mira:voice_response for conv:", data.conversation_id, "currentConversationId:", currentConversationId);
+      if (data.conversation_id !== currentConversationId) {
+        console.warn("[Call Dialog socket] Conversation ID mismatch in voice response! data.conversation_id:", data.conversation_id, "currentConversationId:", currentConversationId);
+        return;
+      }
+
+      const agentMessage = {
+        id: Math.random().toString(36),
+        role: "agent" as const,
+        content: data.content,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        attachments: [],
+        sources: []
+      };
+
+      if (isTransient) {
+        if (setTransientMessages) {
+          console.log("[Call Dialog socket] Updating transient messages locally with agent response");
+          setTransientMessages((prev) => [...prev, agentMessage]);
+        }
+        setLocalIsVoiceProcessing(false);
+        setLocalStatusMessage("");
+      } else {
+        const storeMessage = {
+          ...agentMessage,
+          isRead: true,
+        };
+        const { conversations } = useAIResearcherStore.getState();
+        console.log("[Call Dialog socket] Updating store conversations for agent transcript. Total conversations:", conversations.length);
+        const updated = conversations.map((conv) => {
+          if (conv.id === data.conversation_id) {
+            console.log("[Call Dialog socket] Found matching conversation in store for agent message:", conv.id);
+            return {
+              ...conv,
+              messages: [...conv.messages, storeMessage],
+              preview: data.content.substring(0, 100) + "..."
+            };
+          }
+          return conv;
+        });
+        useAIResearcherStore.setState({
+          conversations: updated,
+          isVoiceProcessing: false,
+          statusMessage: ""
+        });
+      }
+
+      // Dispatch custom audio playing event for the component to catch
+      const playEvent = new CustomEvent("mira:play_audio", { detail: { audio: data.audio } });
+      window.dispatchEvent(playEvent);
+    };
+
+    const handleStatus = (data: { conversation_id: string; status: string }) => {
+      console.log("[Call Dialog socket] Received mira:status:", data);
+      if (data.conversation_id !== currentConversationId) return;
+      if (isTransient) {
+        setLocalStatusMessage(data.status);
+      } else {
+        useAIResearcherStore.setState({ statusMessage: data.status });
+      }
+    };
+
+    const handleDocsProcessed = (data: {
+      conversation_id: string;
+      success: boolean;
+    }) => {
+      console.log("[Call Dialog socket] Received mira:call_docs_processed:", data);
+      if (data.conversation_id !== currentConversationId) return;
+      if (isTransient) {
+        setLocalIsVoiceProcessing(false);
+        setLocalStatusMessage("");
+      } else {
+        useAIResearcherStore.setState({ isVoiceProcessing: false, statusMessage: "" });
+      }
+    };
+
+    socket.on("mira:voice_transcript", handleVoiceTranscript);
+    socket.on("mira:voice_response", handleVoiceResponse);
+    socket.on("mira:status", handleStatus);
+    socket.on("mira:call_docs_processed", handleDocsProcessed);
+
+    return () => {
+      console.log("[Call Dialog socket cleanup] Unregistering listeners for currentConversationId:", currentConversationId);
+      socket.off("mira:voice_transcript", handleVoiceTranscript);
+      socket.off("mira:voice_response", handleVoiceResponse);
+      socket.off("mira:status", handleStatus);
+      socket.off("mira:call_docs_processed", handleDocsProcessed);
+    };
+  }, [socket, isTransient, isOpen, currentConversationId, setTransientMessages]);
+
   // Handle Call Lifecycle & Mic Capture
   useEffect(() => {
     if (isOpen && user?.id) {
-      // 1. Start call session in database / store
-      startCallSession(user.id);
+      if (!isTransient) {
+        // 1. Start call session in database / store
+        startCallSession(user.id);
+      }
       
       // 2. Initialize microphone and start monitoring
       startMicrophone();
@@ -104,7 +438,7 @@ export function IntelligenceCallDialog({
     return () => {
       cleanupCall();
     };
-  }, [isOpen, user]);
+  }, [isOpen, user, isTransient]);
 
   // Handle Audio Playback Event from Socket.IO
   useEffect(() => {
@@ -168,7 +502,7 @@ export function IntelligenceCallDialog({
   }, [messages, isVoiceProcessing]);
 
   // Start Microphone Stream & VAD Analysis
-  async function startMicrophone() {
+  async function startMicrophone(forceBypassMuteCheck: boolean = false) {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       micStreamRef.current = stream;
@@ -185,7 +519,7 @@ export function IntelligenceCallDialog({
       analyserRef.current = analyser;
 
       // Setup MediaRecorder
-      setupMediaRecorder(stream);
+      setupMediaRecorder(stream, forceBypassMuteCheck);
 
       // Start VAD monitoring interval
       const bufferLength = analyser.frequencyBinCount;
@@ -194,7 +528,7 @@ export function IntelligenceCallDialog({
       const silenceDelay = 1500; // 1.5 seconds silence to trigger send
 
       const vadMonitor = () => {
-        if (!analyserRef.current || isMuted) return;
+        if (!analyserRef.current || isMutedRef.current) return;
         analyserRef.current.getByteFrequencyData(dataArray);
 
         let sum = 0;
@@ -234,7 +568,9 @@ export function IntelligenceCallDialog({
               // User has finished speaking, stop recorder to trigger `onstop` callback
               setIsUserSpeaking(false);
               try {
-                mediaRecorderRef.current.stop();
+                if (mediaRecorderRef.current) {
+                  mediaRecorderRef.current.stop();
+                }
               } catch (err) {}
               isRecordingRef.current = false;
               silenceStartRef.current = null;
@@ -251,7 +587,20 @@ export function IntelligenceCallDialog({
     }
   }
 
-  function setupMediaRecorder(stream: MediaStream) {
+  const sendTransientVoice = (base64Audio: string) => {
+    if (!currentConversationId || !user || !socket) return;
+    setLocalIsVoiceProcessing(true);
+    setLocalStatusMessage("Mira is listening...");
+
+    socket.emit("mira:voice_message", {
+      conversation_id: currentConversationId,
+      practitioner_id: user.id,
+      audio: base64Audio,
+      filename: "utterance.wav"
+    });
+  };
+
+  function setupMediaRecorder(stream: MediaStream, forceBypassMuteCheck: boolean = false) {
     const mediaRecorder = new MediaRecorder(stream, { mimeType: "audio/webm" });
     mediaRecorderRef.current = mediaRecorder;
     audioChunksRef.current = [];
@@ -273,19 +622,23 @@ export function IntelligenceCallDialog({
       reader.onloadend = () => {
         const base64 = (reader.result as string).split(",")[1];
         if (base64) {
-          sendCallVoice(base64);
+          if (isTransient) {
+            sendTransientVoice(base64);
+          } else {
+            sendCallVoice(base64);
+          }
         }
       };
     };
 
-    if (!isMuted) {
+    if (!isMutedRef.current || forceBypassMuteCheck) {
       mediaRecorder.start();
       isRecordingRef.current = true;
     }
   }
 
-  function resumeRecording() {
-    if (micStreamRef.current && !isMuted) {
+  function resumeRecording(forceBypassMuteCheck: boolean = false) {
+    if (micStreamRef.current && (!isMutedRef.current || forceBypassMuteCheck)) {
       try {
         audioChunksRef.current = [];
         if (mediaRecorderRef.current) {
@@ -330,14 +683,20 @@ export function IntelligenceCallDialog({
     setIsMiraSpeaking(false);
     setAttachments([]);
 
-    // End call in store
-    endCallSession();
+    if (!isTransient) {
+      // End call in store
+      endCallSession();
+    } else {
+      setLocalIsVoiceProcessing(false);
+      setLocalStatusMessage("");
+    }
   }
 
   // Handle Mute Button Trigger
   function toggleMute() {
     const nextMuted = !isMuted;
     setIsMuted(nextMuted);
+    isMutedRef.current = nextMuted;
 
     if (nextMuted) {
       // Stop recording if active
@@ -352,9 +711,9 @@ export function IntelligenceCallDialog({
     } else {
       // Re-initialize mic setup
       if (micStreamRef.current) {
-        resumeRecording();
+        resumeRecording(true);
       } else {
-        startMicrophone();
+        startMicrophone(true);
       }
     }
   }
@@ -392,10 +751,43 @@ export function IntelligenceCallDialog({
     }
   }
 
+  const sendTransientDocs = async (attachmentsToSend: Attachment[]) => {
+    if (!currentConversationId || !socket) return;
+    setLocalIsVoiceProcessing(true);
+    setLocalStatusMessage("Processing attachments...");
+
+    const processed = await Promise.all(
+      attachmentsToSend.map(async (att) => {
+        if (att.file) {
+          const base64 = await fileToBase64(att.file);
+          return {
+            type: att.type,
+            name: att.name,
+            data: base64
+          };
+        }
+        return {
+          type: att.type,
+          name: att.name,
+          url: att.url
+        };
+      })
+    );
+
+    socket.emit("mira:call_send_docs", {
+      conversation_id: currentConversationId,
+      attachments: processed
+    });
+  };
+
   // Sends the accumulated files to be processed by the backend call session
   function handleSendDocs() {
     if (attachments.length > 0) {
-      sendCallDocs(attachments);
+      if (isTransient) {
+        sendTransientDocs(attachments);
+      } else {
+        sendCallDocs(attachments);
+      }
       setAttachments([]); // Reset attachments after sending
     }
   }
@@ -414,7 +806,13 @@ export function IntelligenceCallDialog({
       <AlertDialogContent
         size="xl"
         className="p-0 gap-0 overflow-hidden rounded-2xl shadow-2xl border-0 bg-white"
-        style={{ maxHeight: "88vh", display: "flex", flexDirection: "column" }}
+        style={{
+          width: "min(95vw, 90rem)",
+          maxHeight: "88vh",
+          maxWidth: "none",
+          display: "flex",
+          flexDirection: "column"
+        }}
       >
         {/* ── Top Header Bar ─────────────────────────────────────── */}
         <div className="flex items-center justify-between px-8 py-5 bg-white border-b border-gray-100 shrink-0">
@@ -449,7 +847,7 @@ export function IntelligenceCallDialog({
               <img
                 src={medPic}
                 alt="AI Agent"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover object-top"
               />
             </div>
 
@@ -583,7 +981,7 @@ export function IntelligenceCallDialog({
                             ? "bg-slate-100 text-slate-500 border border-slate-200 self-center rounded-lg max-w-[95%] text-center italic text-xs"
                             : isUser
                             ? "bg-blue-50 border border-blue-100 text-blue-900 self-end rounded-tr-sm"
-                            : "bg-white border border-gray-200 text-gray-800 self-start rounded-tl-sm shadow-xs"
+                            : "bg-white border border-gray-200 text-gray-800 self-start rounded-tl-sm shadow-xs animate-fadeIn"
                         }`}
                       >
                         {!isSystem && (
@@ -591,7 +989,11 @@ export function IntelligenceCallDialog({
                             {isUser ? "You" : "Mira"}
                           </span>
                         )}
-                        <p>{msg.content}</p>
+                        {isUser || isSystem ? (
+                          <p>{msg.content}</p>
+                        ) : (
+                          <div className="space-y-1">{renderCallMarkdown(msg.content)}</div>
+                        )}
                       </div>
                     );
                   })
