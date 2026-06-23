@@ -752,7 +752,7 @@ export function IntelligenceCallDialog({
   }
 
   const sendTransientDocs = async (attachmentsToSend: Attachment[]) => {
-    if (!currentConversationId || !socket) return;
+    if (!currentConversationId || !socket || !user) return;
     setLocalIsVoiceProcessing(true);
     setLocalStatusMessage("Processing attachments...");
 
@@ -776,6 +776,7 @@ export function IntelligenceCallDialog({
 
     socket.emit("mira:call_send_docs", {
       conversation_id: currentConversationId,
+      practitioner_id: user.id,
       attachments: processed
     });
   };

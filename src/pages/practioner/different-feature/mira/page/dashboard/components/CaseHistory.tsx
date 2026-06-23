@@ -209,7 +209,6 @@ export function CaseHistory({
       case "deleted":
         return {
           label: "Deleted",
-          icon: Trash2,
           color: "text-rose-600",
           bg: "bg-rose-50 border-rose-200/50",
         };
@@ -299,7 +298,7 @@ export function CaseHistory({
                   >
                     {config.label}
                   </span>
-                  <StatusIcon className={`w-5 h-5 ${config.color}`} />
+                  {StatusIcon && <StatusIcon className={`w-5 h-5 ${config.color}`} />}
                 </div>
                 <h3 className="font-bold text-gray-900 text-[0.9375rem]">
                   {item.title}

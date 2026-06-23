@@ -217,41 +217,11 @@ export const useAIResearcherStore = create<AIResearcherStore>((set, get) => ({
   },
 
   createConversation: async (type, title) => {
-    const user = useAuthStore.getState().user;
-    if (!user) return;
-
     const convId = generateId();
-    const defaultTitle = type === "call" ? "New Call Session" : "New Lookup Session";
-    const sessionTitle = title || defaultTitle;
-
-    const newSession: LookupConversation = {
-      id: convId,
-      title: sessionTitle,
-      preview: "No messages yet",
-      date: getFormattedDate(),
-      timestamp: getCurrentTime(),
-      type,
-      messages: []
-    };
-
-    // Optimistically update frontend
-    set((state) => ({
-      conversations: [newSession, ...state.conversations],
+    set({
       activeConversationId: convId,
       pendingAttachments: []
-    }));
-
-    try {
-      const url = `http://${window.location.hostname}:8000/mira/research/conversations`;
-      await axios.post(url, {
-        id: convId,
-        practitioner_id: user.id,
-        title: sessionTitle,
-        type
-      });
-    } catch (err) {
-      console.error("[AI Researcher] Failed to persist new conversation:", err);
-    }
+    });
   },
 
   deleteConversation: async (id, reason) => {
@@ -317,7 +287,7 @@ export const useAIResearcherStore = create<AIResearcherStore>((set, get) => ({
   },
 
   sendUserMessage: async (content) => {
-    const { activeConversationId, pendingAttachments, socket } = get();
+    const { activeConversationId, pendingAttachments, socket, conversations } = get();
     const user = useAuthStore.getState().user;
     if (!activeConversationId || !user || !socket) return;
 
@@ -359,27 +329,62 @@ export const useAIResearcherStore = create<AIResearcherStore>((set, get) => ({
       sources: []
     };
 
-    // 2. Append local message optimistically
-    set((state) => {
-      const updatedConvs = state.conversations.map((conv) => {
-        if (conv.id === activeConversationId) {
-          const updatedMessages = [...conv.messages, userMessage];
-          return {
-            ...conv,
-            messages: updatedMessages,
-            preview: content || (pendingAttachments.length > 0 ? "Sent attachment" : ""),
-            timestamp: getCurrentTime()
-          };
-        }
-        return conv;
-      });
+    // Check if the conversation exists locally. If not, create it first.
+    const exists = conversations.some((c) => c.id === activeConversationId);
+    if (!exists) {
+      const defaultTitle = "New Lookup Session";
+      const sessionTitle = content ? (content.substring(0, 40) + (content.length > 40 ? "..." : "")) : defaultTitle;
 
-      return {
-        conversations: updatedConvs,
+      const newSession: LookupConversation = {
+        id: activeConversationId,
+        title: sessionTitle,
+        preview: content || (pendingAttachments.length > 0 ? "Sent attachment" : ""),
+        date: getFormattedDate(),
+        timestamp: getCurrentTime(),
+        type: "chat",
+        messages: [userMessage]
+      };
+
+      try {
+        const url = `http://${window.location.hostname}:8000/mira/research/conversations`;
+        await axios.post(url, {
+          id: activeConversationId,
+          practitioner_id: user.id,
+          title: sessionTitle,
+          type: "chat"
+        });
+      } catch (err) {
+        console.error("[AI Researcher] Failed to persist lazy conversation:", err);
+      }
+
+      set((state) => ({
+        conversations: [newSession, ...state.conversations],
         pendingAttachments: [],
         statusMessage: "Mira is connecting..."
-      };
-    });
+      }));
+    } else {
+      // 2. Append local message optimistically
+      set((state) => {
+        const updatedConvs = state.conversations.map((conv) => {
+          if (conv.id === activeConversationId) {
+            const updatedMessages = [...conv.messages, userMessage];
+            return {
+              ...conv,
+              messages: updatedMessages,
+              preview: content || (pendingAttachments.length > 0 ? "Sent attachment" : ""),
+              timestamp: getCurrentTime()
+            };
+          }
+          return conv;
+        });
+
+        return {
+          conversations: updatedConvs,
+          pendingAttachments: [],
+          statusMessage: "Mira is connecting..."
+        };
+      });
+    }
 
     // 3. Emit message over Socket.io
     socket.emit("mira:send_message", {
@@ -423,6 +428,37 @@ export const useAIResearcherStore = create<AIResearcherStore>((set, get) => ({
           }));
         } catch (err) {
           console.error("[AI Researcher] Failed to sync call conversation type:", err);
+        }
+        return;
+      } else {
+        // Active conversation exists but is not in conversations list (i.e. it's a new transient/lazy session)
+        const sessionTitle = "Voice Call - " + getFormattedDate();
+        const newSession: LookupConversation = {
+          id: activeConversationId,
+          title: sessionTitle,
+          preview: "Call starting...",
+          date: getFormattedDate(),
+          timestamp: getCurrentTime(),
+          type: "call",
+          messages: []
+        };
+
+        set((state) => ({
+          conversations: [newSession, ...state.conversations],
+          isCallActive: true,
+          pendingAttachments: []
+        }));
+
+        try {
+          const url = `http://${window.location.hostname}:8000/mira/research/conversations`;
+          await axios.post(url, {
+            id: activeConversationId,
+            practitioner_id: practitionerId,
+            title: sessionTitle,
+            type: "call"
+          });
+        } catch (err) {
+          console.error("[AI Researcher] Failed to persist new call conversation:", err);
         }
         return;
       }
@@ -486,7 +522,8 @@ export const useAIResearcherStore = create<AIResearcherStore>((set, get) => ({
 
   sendCallDocs: async (attachments) => {
     const { activeConversationId, socket } = get();
-    if (!activeConversationId || !socket) return;
+    const user = useAuthStore.getState().user;
+    if (!activeConversationId || !socket || !user) return;
 
     set({ isVoiceProcessing: true, statusMessage: "Processing attachments..." });
 
@@ -510,6 +547,7 @@ export const useAIResearcherStore = create<AIResearcherStore>((set, get) => ({
 
     socket.emit("mira:call_send_docs", {
       conversation_id: activeConversationId,
+      practitioner_id: user.id,
       attachments: processed
     });
   }

@@ -390,33 +390,16 @@ export function ResearchCenter({
   // Fetch history when activeConvId changes and ensure conversation exists
   useEffect(() => {
     if (activeConvId && isChatModalOpen && user?.id) {
+      if (!isResumingSession) {
+        // For a brand new session, do not save to DB or fetch history yet
+        setMessages([]);
+        return;
+      }
+
       const fetchHistory = async () => {
         try {
           setIsLoading(true);
           setStatusMessage("Retrieving history...");
-
-          // Ensure conversation exists in DB
-          const title = activeConvId.startsWith("research_topic_")
-            ? activeConvId.includes("R1")
-              ? "Lung Cancer Biomarkers"
-              : activeConvId.includes("R2")
-                ? "GLP-1 Agonists Efficacy"
-                : "Long-COVID Fatigue"
-            : "General Research Session";
-
-          await fetch(
-            `http://${window.location.hostname}:8000/mira/research/conversations`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                id: activeConvId,
-                practitioner_id: user.id,
-                title: title,
-                type: "chat",
-              }),
-            },
-          );
 
           const res = await fetch(
             `http://${window.location.hostname}:8000/mira/research/conversations/${activeConvId}/messages`,
@@ -434,6 +417,7 @@ export function ResearchCenter({
       };
       fetchHistory();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeConvId, isChatModalOpen, user]);
 
   // Close attach menu on click outside
@@ -631,6 +615,36 @@ export function ResearchCenter({
         };
       }),
     );
+
+    // If this is a new lazy/transient session, persist it to the database first
+    if (!isResumingSession) {
+      try {
+        const title = activeConvId.startsWith("research_topic_")
+          ? activeConvId.includes("R1")
+            ? "Lung Cancer Biomarkers"
+            : activeConvId.includes("R2")
+              ? "GLP-1 Agonists Efficacy"
+              : "Long-COVID Fatigue"
+          : trimmedInput ? (trimmedInput.substring(0, 40) + (trimmedInput.length > 40 ? "..." : "")) : "General Research Session";
+
+        await fetch(
+          `http://${window.location.hostname}:8000/mira/research/conversations`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              id: activeConvId,
+              practitioner_id: user.id,
+              title: title,
+              type: "chat",
+            }),
+          },
+        );
+        setIsResumingSession(true);
+      } catch (err) {
+        console.error("[Research Center] Failed to persist lazy conversation:", err);
+      }
+    }
 
     const newMessage = {
       id: Math.random().toString(36),
