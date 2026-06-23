@@ -216,7 +216,7 @@ export const useAIResearcherStore = create<AIResearcherStore>((set, get) => ({
     }
   },
 
-  createConversation: async (type, title) => {
+  createConversation: async (_type, _title) => {
     const convId = generateId();
     set({
       activeConversationId: convId,

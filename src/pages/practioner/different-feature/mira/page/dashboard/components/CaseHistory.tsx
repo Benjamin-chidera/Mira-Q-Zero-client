@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import type { ReactNode } from "react";
-import { CheckCircle2, XCircle, Archive, Trash2, X } from "lucide-react";
+import { CheckCircle2, XCircle, Archive, X } from "lucide-react";
 import useAuthStore from "@/store/auth.store";
 import {
   AlertDialog,

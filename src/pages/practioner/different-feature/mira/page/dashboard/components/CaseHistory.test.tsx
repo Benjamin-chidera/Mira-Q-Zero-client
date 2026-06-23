@@ -9,7 +9,7 @@ vi.mock("@/store/auth.store", () => ({
 
 // Mock global fetch
 const mockFetch = vi.fn();
-global.fetch = mockFetch;
+vi.stubGlobal("fetch", mockFetch);
 
 describe("CaseHistory Component", () => {
   beforeEach(() => {
