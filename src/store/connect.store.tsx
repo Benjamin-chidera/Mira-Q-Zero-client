@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import axios from "axios";
+import { API_BASE_URL } from "@/config/api";
 
 export interface GPSlot {
   id: number;
@@ -137,7 +138,7 @@ const useConnectStore = create<ConnectState>((set, get) => ({
       const firstName = patientName.split(" ")[0];
       const greetingText = `Hi ${firstName}, I'm your GP assistant. I'll take a brief note of your symptoms to share with ${gpName}. When you're ready, please describe what's been bothering you.`;
       
-      const url = `http://${window.location.hostname}:8000/api/tts`;
+      const url = `${API_BASE_URL}/api/tts`;
       const res = await axios.post(
         url,
         {
@@ -159,7 +160,7 @@ const useConnectStore = create<ConnectState>((set, get) => ({
     // Correct way to read state inside an action in Zustand:
     const postcode = get().radius; // Note: This is currently reading 'radius' (e.g. 5) as the postcode.
     try {
-      const url = `http://${window.location.hostname}:8000/gps?postcode=${postcode}`;
+      const url = `${API_BASE_URL}/gps?postcode=${postcode}`;
       const { data } = await axios.get(url);
 
       console.log(data);
@@ -291,7 +292,7 @@ const useConnectStore = create<ConnectState>((set, get) => ({
       }
 
       // Step 2: Fetch GPs from the Backend API (which routes to England or Scotland)
-      const backendUrl = `http://${window.location.hostname}:8000/gps?postcode=${outcode}&radius=${radius}&startDate=${startDate || ""}&endDate=${endDate || ""}&startTime=${startTime || ""}&endTime=${endTime || ""}`;
+      const backendUrl = `${API_BASE_URL}/gps?postcode=${outcode}&radius=${radius}&startDate=${startDate || ""}&endDate=${endDate || ""}&startTime=${startTime || ""}&endTime=${endTime || ""}`;
       const { data } = await axios.get(backendUrl);
 
       console.log("Data received from Backend API:", data);

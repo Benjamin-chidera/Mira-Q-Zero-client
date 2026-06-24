@@ -2,10 +2,13 @@ import { X, Mic } from "lucide-react";
 import { usePatientStore } from "@/store/medTech/patient.store";
 import { useEffect, useState } from "react";
 import { useMiraStore } from "@/store/medTech/mira.store";
+import { API_BASE_URL } from "@/config/api";
 import { SummaryTab } from "./summary";
 import { ClinicalNotesTab } from "./clinical-notes";
 import { OperativeNotesTab } from "./operative-notes";
 import { DocumentsTab } from "./documents";
+import { AlertsTab } from "./alerts";
+import { useNotificationStore } from "@/store/medTech/notification.store";
 
 interface DetailDrawerProps {
   showDetail: boolean;
@@ -14,6 +17,8 @@ interface DetailDrawerProps {
   selectedResearchItem: any;
   selectedPatient: any;
   setIsCallDialogOpen: (open: boolean) => void;
+  setActiveView: (view: "patients" | "agent" | "research" | "cases") => void;
+  setCallConfig?: (config: any) => void;
 }
 
 export function DetailDrawer({
@@ -23,6 +28,8 @@ export function DetailDrawer({
   selectedResearchItem,
   selectedPatient,
   setIsCallDialogOpen,
+  setActiveView,
+  setCallConfig,
 }: DetailDrawerProps) {
   const { isHydrating, activePatientData, hydrationError } = usePatientStore();
   const {
@@ -46,7 +53,12 @@ export function DetailDrawer({
     isLoadingDocuments,
   } = useMiraStore();
 
-  const [activeTab, setActiveTab] = useState<"summary" | "clinical" | "operative" | "documents">("summary");
+  const fetchNotifications = useNotificationStore((state) => state.fetchNotifications);
+
+  const [activeTab, setActiveTab] = useState<"summary" | "clinical" | "operative" | "documents" | "alerts">("summary");
+  const [patientCallMessages, setPatientCallMessages] = useState<any[]>([]);
+  const [aiSummary, setAiSummary] = useState<string[]>([]);
+  const [isLoadingSummary, setIsLoadingSummary] = useState<boolean>(false);
 
   useEffect(() => {
     if (selectedPatient?.id) {
@@ -55,10 +67,26 @@ export function DetailDrawer({
       fetchClinicalNotes(selectedPatient.id);
       fetchOperativeNotes(selectedPatient.id);
       fetchDocuments(selectedPatient.id);
+      fetchNotifications(selectedPatient.id);
+      
+      // Fetch dynamic medical summary
+      setIsLoadingSummary(true);
+      setAiSummary([]);
+      fetch(`${API_BASE_URL}/medTech/patients/${selectedPatient.id}/summary`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data && data.summary) {
+            setAiSummary(data.summary);
+          }
+        })
+        .catch((err) => console.error("Error fetching AI summary:", err))
+        .finally(() => setIsLoadingSummary(false));
+
       // Reset local UI states on patient change
       setActiveTab("summary");
+      setPatientCallMessages([]);
     }
-  }, [selectedPatient?.id]);
+  }, [selectedPatient?.id, fetchNotifications]);
 
   if (!showDetail) return null;
 
@@ -178,18 +206,26 @@ export function DetailDrawer({
             ) : activePatientData ? (
               <div className="flex flex-col gap-4">
                 {/* Horizontal Navigation Tabs */}
-                <div className="flex border-b border-gray-200 sticky top-0 bg-[#FAFAF9] z-10 py-1 -mt-1">
-                  {(["summary", "clinical", "operative", "documents"] as const).map((tab) => (
+                <div className="flex border-b border-gray-200 sticky top-0 bg-[#FAFAF9] z-10 py-1 -mt-1 overflow-x-auto whitespace-nowrap scrollbar-none">
+                  {(["summary", "clinical", "operative", "documents", "alerts"] as const).map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab)}
-                      className={`flex-1 pb-2 text-[0.625rem] font-bold uppercase tracking-wider text-center transition-all border-b-2 ${
+                      className={`flex-1 pb-2 px-2 text-[0.625rem] font-bold uppercase tracking-wider text-center transition-all border-b-2 ${
                         activeTab === tab
                           ? "border-[#005EB8] text-[#005EB8]"
                           : "border-transparent text-gray-400 hover:text-gray-600"
                       }`}
                     >
-                      {tab === "summary" ? "Summary" : tab === "clinical" ? "Clinical Notes" : tab === "operative" ? "Operative Notes" : "Documents"}
+                      {tab === "summary"
+                        ? "Summary"
+                        : tab === "clinical"
+                        ? "Clinical Notes"
+                        : tab === "operative"
+                        ? "Operative Notes"
+                        : tab === "documents"
+                        ? "Documents"
+                        : "Clinical Alerts"}
                     </button>
                   ))}
                 </div>
@@ -200,6 +236,7 @@ export function DetailDrawer({
                     allergiesError={allergiesError}
                     medications={medications}
                     medicationsError={medicationsError}
+                    patientId={selectedPatient.id}
                   />
                 )}
 
@@ -227,6 +264,14 @@ export function DetailDrawer({
                     activePatientData={activePatientData}
                   />
                 )}
+
+                {activeTab === "alerts" && (
+                  <AlertsTab
+                    patient={selectedPatient}
+                    setIsCallDialogOpen={setIsCallDialogOpen}
+                    setActiveView={setActiveView}
+                  />
+                )}
               </div>
             ) : null}
           </>
@@ -249,41 +294,43 @@ export function DetailDrawer({
               AI Medical Summarizer
             </h4>
             <button
-              onClick={() => setIsCallDialogOpen(true)}
+              onClick={() => {
+                const transientId = `transient_patient_${selectedPatient.id}_${Date.now()}`;
+                if (setCallConfig) {
+                  setCallConfig({
+                    isTransient: true,
+                    transientConversationId: transientId,
+                    messages: patientCallMessages,
+                    setMessages: setPatientCallMessages,
+                  });
+                }
+                setIsCallDialogOpen(true);
+              }}
               className="bg-[#005EB8] hover:bg-[#004A99] text-white px-3.5 py-1.5 rounded-full text-[0.6875rem] font-bold shadow-sm transition-all hover:scale-105 flex items-center gap-1.5"
             >
               <Mic className="w-3.5 h-3.5" />
               Speak with Mira
             </button>
           </div>
-          <ul className="space-y-2">
-            <li className="text-[0.8125rem] text-gray-700 font-medium leading-relaxed flex items-start gap-2">
-              <span className="text-[#005EB8] mt-0.5">•</span>
-              <span>
-                Patient presents with decreasing renal clearance over 3 months{" "}
-                <a
-                  href="#"
-                  className="text-[#005EB8] hover:underline font-bold"
-                >
-                  [1]
-                </a>
-                .
-              </span>
-            </li>
-            <li className="text-[0.8125rem] text-gray-700 font-medium leading-relaxed flex items-start gap-2">
-              <span className="text-[#005EB8] mt-0.5">•</span>
-              <span>
-                Current dosage of Metformin requires optimization based on{" "}
-                <a
-                  href="#"
-                  className="text-[#005EB8] hover:underline font-bold"
-                >
-                  [2]
-                </a>
-                .
-              </span>
-            </li>
-          </ul>
+          {isLoadingSummary ? (
+            <div className="flex items-center gap-2 text-xs text-gray-400 py-3 font-medium">
+              <div className="w-3.5 h-3.5 border-2 border-[#005EB8] border-t-transparent rounded-full animate-spin"></div>
+              Generating clinical summary...
+            </div>
+          ) : aiSummary.length > 0 ? (
+            <div className="max-h-28 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+              <ul className="space-y-2">
+                {aiSummary.map((bullet, index) => (
+                  <li key={index} className="text-[0.8125rem] text-gray-700 font-medium leading-relaxed flex items-start gap-2">
+                    <span className="text-[#005EB8] mt-0.5">•</span>
+                    <span>{bullet}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <div className="text-xs text-gray-400 italic py-2">No clinical summary available.</div>
+          )}
         </div>
       )}
 

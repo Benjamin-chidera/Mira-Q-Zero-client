@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { API_BASE_URL } from '@/config/api';
 
 export interface Patient {
   id: number | string;
@@ -35,7 +36,7 @@ export const usePatientStore = create<PatientStore>((set) => ({
   fetchPatients: async (odsCode: string, doctorId?: number | string) => {
     set({ isLoading: true, error: null });
     try {
-      let url = `http://${window.location.hostname}:8000/medTech/patients?ods_code=${odsCode}`;
+      let url = `${API_BASE_URL}/medTech/patients?ods_code=${odsCode}`;
       if (doctorId !== undefined && doctorId !== null) {
         url += `&doctor_id=${doctorId}`;
       }
@@ -57,8 +58,8 @@ export const usePatientStore = create<PatientStore>((set) => ({
     set({ isHydrating: true, hydrationError: null, activePatientData: null });
     try {
       const [scrRes, nrlRes] = await Promise.all([
-        fetch(`http://${window.location.hostname}:8000/medTech/clinical/${nhsNumber}/scr`),
-        fetch(`http://${window.location.hostname}:8000/medTech/clinical/${nhsNumber}/nrl`)
+        fetch(`${API_BASE_URL}/medTech/clinical/${nhsNumber}/scr`),
+        fetch(`${API_BASE_URL}/medTech/clinical/${nhsNumber}/nrl`)
       ]);
 
       if (!scrRes.ok || !nrlRes.ok) {
@@ -90,7 +91,7 @@ export const usePatientStore = create<PatientStore>((set) => ({
       if (details.age !== undefined) payload.age = details.age;
       if (details.dateOfBirth !== undefined) payload.date_of_birth = details.dateOfBirth;
 
-      const response = await fetch(`http://${window.location.hostname}:8000/medTech/patients/${patientId}`, {
+      const response = await fetch(`${API_BASE_URL}/medTech/patients/${patientId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'

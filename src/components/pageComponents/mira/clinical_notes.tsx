@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import {
   ClipboardList,
   PlusCircle,
@@ -9,50 +9,30 @@ import {
 } from "lucide-react";
 import type { Patient } from "@/store/medTech/patient.store";
 import { useMiraStore } from "@/store/medTech/mira.store";
+import { useClinicalFormStore } from "@/store/medTech/clinicalForm.store";
 
 interface ClinicalNotesProps {
   patient: Patient;
 }
 
 export function ClinicalNotes({ patient }: ClinicalNotesProps) {
-  // Read state and actions directly from the Zustand store
   const {
     clinicalNotes,
     isLoadingClinicalNotes,
-    isSavingClinicalNote,
     clinicalNotesError,
     fetchClinicalNotes,
-    addClinicalNote,
   } = useMiraStore();
 
-  // Form states (kept local because they are UI-only, component-scoped inputs)
-  const [clinContent, setClinContent] = useState("");
-  const [clinAuthor, setClinAuthor] = useState("");
-  const [clinAuthorRole, setClinAuthorRole] = useState("");
+  const {
+    clinContent,
+    clinAuthor,
+    clinAuthorRole,
+    setFieldValue,
+  } = useClinicalFormStore();
 
-  // Fetch clinical notes when component mounts or patient ID changes
   useEffect(() => {
     fetchClinicalNotes(patient.id);
   }, [patient.id, fetchClinicalNotes]);
-
-  // Handle adding new clinical note
-  const handleAddClinicalNote = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await addClinicalNote(
-        patient.id,
-        clinContent,
-        clinAuthor,
-        clinAuthorRole,
-      );
-      // Clear the local form inputs upon successful submission
-      setClinContent("");
-      setClinAuthor("");
-      setClinAuthorRole("");
-    } catch (err) {
-      // The store handles logging and setting error state in clinicalNotesError.
-    }
-  };
 
   if (isLoadingClinicalNotes) {
     return (
@@ -114,10 +94,7 @@ export function ClinicalNotes({ patient }: ClinicalNotesProps) {
       </div>
 
       {/* Form view */}
-      <form
-        onSubmit={handleAddClinicalNote}
-        className="w-[22.5rem] bg-slate-50/50 p-6 overflow-y-auto shrink-0 flex flex-col justify-between"
-      >
+      <div className="w-[22.5rem] bg-slate-50/50 p-6 overflow-y-auto shrink-0 flex flex-col justify-between">
         <div className="flex flex-col gap-4">
           <h3 className="text-[0.75rem] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
             <PlusCircle className="w-4 h-4 text-[#005EB8]" /> Add Clinical Note
@@ -130,9 +107,8 @@ export function ClinicalNotes({ patient }: ClinicalNotesProps) {
               </label>
               <input
                 type="text"
-                required
                 value={clinAuthor}
-                onChange={(e) => setClinAuthor(e.target.value)}
+                onChange={(e) => setFieldValue("clinAuthor", e.target.value)}
                 placeholder="e.g. Nurse Sarah"
                 className="px-4.5 py-2 text-[0.8125rem] border border-gray-200 rounded-xl focus:border-[#005EB8] outline-none bg-white"
               />
@@ -144,9 +120,8 @@ export function ClinicalNotes({ patient }: ClinicalNotesProps) {
               </label>
               <input
                 type="text"
-                required
                 value={clinAuthorRole}
-                onChange={(e) => setClinAuthorRole(e.target.value)}
+                onChange={(e) => setFieldValue("clinAuthorRole", e.target.value)}
                 placeholder="e.g. Ward Sister"
                 className="px-4.5 py-2 text-[0.8125rem] border border-gray-200 rounded-xl focus:border-[#005EB8] outline-none bg-white"
               />
@@ -157,28 +132,20 @@ export function ClinicalNotes({ patient }: ClinicalNotesProps) {
                 Note Content
               </label>
               <textarea
-                required
                 value={clinContent}
-                onChange={(e) => setClinContent(e.target.value)}
+                onChange={(e) => setFieldValue("clinContent", e.target.value)}
                 placeholder="Ward checks, non-surgical updates, observations..."
-                rows={5}
+                rows={7}
                 className="px-4.5 py-2.5 text-[0.8125rem] border border-gray-200 rounded-xl focus:border-[#005EB8] outline-none bg-white resize-none"
               />
             </div>
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={isSavingClinicalNote}
-          className="w-full mt-6 py-2.5 bg-[#005EB8] hover:bg-[#004A99] text-white font-bold text-[0.8125rem] rounded-xl shadow-md transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-        >
-          {isSavingClinicalNote && (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          )}
-          Create Clinical Note
-        </button>
-      </form>
+        <div className="text-[0.6875rem] text-slate-400 mt-6 text-center font-medium bg-slate-100/50 p-2.5 rounded-lg border border-slate-100">
+          Draft active. Use "Save Clinical Updates" button at the top to commit changes.
+        </div>
+      </div>
     </div>
   );
 }

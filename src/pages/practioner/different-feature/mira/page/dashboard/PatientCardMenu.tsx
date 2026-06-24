@@ -20,6 +20,11 @@ import {
   AlertDialogDescription,
 } from '@/components/ui/alert-dialog';
 
+import { useClinicalFormStore } from '@/store/medTech/clinicalForm.store';
+import { useMiraStore } from '@/store/medTech/mira.store';
+import useAuthStore from '@/store/auth.store';
+import { Loader2 } from 'lucide-react';
+
 // Import split clinical components
 import { PatientDocuments } from '@/components/pageComponents/mira/patient_documents';
 import { OperativeNotes } from '@/components/pageComponents/mira/operative_notes';
@@ -43,10 +48,135 @@ export function PatientCardMenu({ patient }: PatientCardMenuProps) {
   // Controls opening/closing the full-page records editor
   const [isUpdateOpen, setIsUpdateOpen] = useState(false);
 
+  const [isSavingAll, setIsSavingAll] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+
+  const formState = useClinicalFormStore();
+  const resetForm = useClinicalFormStore((state) => state.resetForm);
+
+  const { addDocument, addOperativeNote, addClinicalNote, addMedication, addAllergy } = useMiraStore();
+  const { user } = useAuthStore();
+
+  async function handleUnifiedSave() {
+    setIsSavingAll(true);
+    setSaveError(null);
+    try {
+      const promises = [];
+      const doctorName = user?.name ? user.name.split(" ")[0] : "Unknown";
+
+      // Check Documents
+      const hasDoc = formState.docTitle.trim() || formState.docContent.trim();
+      if (hasDoc) {
+        if (!formState.docTitle.trim() || !formState.docContent.trim()) {
+          throw new Error("Both Document Title and Content are required to save a document.");
+        }
+        promises.push(addDocument(patient.id, formState.docTitle.trim(), formState.docContent.trim()));
+      }
+
+      // Check Operative Note
+      const hasOp =
+        formState.opProcedureName.trim() ||
+        formState.opProcedurePerformed.trim() ||
+        formState.opPreOpDiagnosis.trim() ||
+        formState.opPostOpDiagnosis.trim() ||
+        formState.opNarrativeText.trim() ||
+        formState.opPostOpInstructions.trim() ||
+        formState.opSurgeonName.trim() ||
+        formState.opSurgeryDate.trim();
+      if (hasOp) {
+        if (!formState.opProcedureName.trim() || !formState.opProcedurePerformed.trim() || !formState.opSurgeryDate.trim()) {
+          throw new Error("Procedure Name, Procedure Performed, and Surgery Date are required to save an operative note.");
+        }
+        promises.push(
+          addOperativeNote(patient.id, {
+            procedure_name: formState.opProcedureName.trim(),
+            procedure_performed: formState.opProcedurePerformed.trim(),
+            pre_op_diagnosis: formState.opPreOpDiagnosis.trim(),
+            post_op_diagnosis: formState.opPostOpDiagnosis.trim(),
+            narrative_text: formState.opNarrativeText.trim(),
+            post_op_instructions: formState.opPostOpInstructions.trim(),
+            surgeon_name: formState.opSurgeonName.trim(),
+            surgery_date: formState.opSurgeryDate.trim(),
+          })
+        );
+      }
+
+      // Check Clinical Note
+      const hasClin = formState.clinContent.trim() || formState.clinAuthor.trim() || formState.clinAuthorRole.trim();
+      if (hasClin) {
+        if (!formState.clinContent.trim() || !formState.clinAuthor.trim() || !formState.clinAuthorRole.trim()) {
+          throw new Error("Author, Role, and Note Content are required to save a clinical note.");
+        }
+        promises.push(
+          addClinicalNote(
+            patient.id,
+            formState.clinContent.trim(),
+            formState.clinAuthor.trim(),
+            formState.clinAuthorRole.trim()
+          )
+        );
+      }
+
+      // Check Medication
+      const hasMed = formState.medDrugName.trim() || formState.medDosage.trim() || formState.medFrequency.trim();
+      if (hasMed) {
+        if (!formState.medDrugName.trim() || !formState.medDosage.trim() || !formState.medFrequency.trim()) {
+          throw new Error("Drug Name, Dosage, and Frequency are required to save a medication record.");
+        }
+        promises.push(
+          addMedication(
+            patient.id,
+            formState.medDrugName.trim(),
+            formState.medDosage.trim(),
+            formState.medFrequency.trim(),
+            formState.medStatus,
+            doctorName
+          )
+        );
+      }
+
+      // Check Allergy
+      const hasAllergy = formState.allSubstance.trim() || formState.allReaction.trim();
+      if (hasAllergy) {
+        if (!formState.allSubstance.trim() || !formState.allReaction.trim()) {
+          throw new Error("Substance and Reaction are required to save an allergy record.");
+        }
+        promises.push(
+          addAllergy(
+            patient.id,
+            formState.allSubstance.trim(),
+            formState.allReaction.trim(),
+            formState.allCriticality,
+            formState.allStatus,
+            doctorName
+          )
+        );
+      }
+
+      if (promises.length === 0) {
+        throw new Error("No fields have been populated. Please enter clinical record updates before saving.");
+      }
+
+      await Promise.all(promises);
+      resetForm();
+      setToastMessage("Clinical records updated successfully.");
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 4000);
+    } catch (err: any) {
+      setSaveError(err.message || "Failed to save clinical updates.");
+    } finally {
+      setIsSavingAll(false);
+    }
+  }
+
   // Initialize active tab when dialog is opened
   useEffect(() => {
     if (isUpdateOpen) {
       setActiveTab('documents');
+      resetForm();
+      setSaveError(null);
     }
   }, [isUpdateOpen]);
 
@@ -256,9 +386,23 @@ export function PatientCardMenu({ patient }: PatientCardMenuProps) {
               <div className="flex-1 flex flex-col min-h-0">
                 {/* Tab header */}
                 <div className="px-8 py-5 border-b border-slate-100 flex items-center justify-between shrink-0">
-                  <h2 className="text-[1rem] font-bold text-slate-800 uppercase tracking-wider">
-                    {sidebarTabs.find((t) => t.id === activeTab)?.label}
-                  </h2>
+                  <div className="flex flex-col gap-1">
+                    <h2 className="text-[1rem] font-bold text-slate-800 uppercase tracking-wider">
+                      {sidebarTabs.find((t) => t.id === activeTab)?.label}
+                    </h2>
+                    {saveError && (
+                      <span className="text-[0.6875rem] text-red-500 font-semibold">{saveError}</span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    disabled={isSavingAll}
+                    onClick={handleUnifiedSave}
+                    className="bg-[#005EB8] hover:bg-[#004A99] disabled:opacity-50 text-white font-bold text-[0.8125rem] px-5 py-2 rounded-xl shadow-md transition-all flex items-center gap-2"
+                  >
+                    {isSavingAll && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                    Save Clinical Updates
+                  </button>
                 </div>
 
                 {/* Tab content scroll body */}
@@ -270,6 +414,20 @@ export function PatientCardMenu({ patient }: PatientCardMenuProps) {
           </div>
         </AlertDialogContent>
       </AlertDialog>
+
+      {showToast && (
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-3.5 px-5 py-3.5 bg-white/90 backdrop-blur-md border border-emerald-100 shadow-2xl rounded-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+          <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-[0.8125rem] font-bold text-slate-800">Success</span>
+            <span className="text-[0.6875rem] font-medium text-slate-500 mt-0.5">{toastMessage}</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

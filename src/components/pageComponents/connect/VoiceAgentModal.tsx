@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import axios from "axios";
 import { io, Socket } from "socket.io-client";
 import useConnectStore from "@/store/connect.store";
+import { API_BASE_URL } from "@/config/api";
 
 function encodeToWAV(audioBuffer: AudioBuffer): Blob {
   const samples = audioBuffer.getChannelData(0);
@@ -385,7 +386,7 @@ export function VoiceAgentModal({
     let ref: string | null = null;
     try {
       if (slotId && nhsNumber && odsCode) {
-        const res = await axios.post(`http://${window.location.hostname}:8000/api/bookings`, {
+        const res = await axios.post(`${API_BASE_URL}/api/bookings`, {
           ods_code: odsCode,
           slot_id: slotId,
           nhs_number: nhsNumber,
@@ -455,7 +456,7 @@ export function VoiceAgentModal({
     }
 
     // Establish persistent Socket.IO connection for real-time voice interaction
-    socketRef.current = io(`http://${window.location.hostname}:8000`, {
+    socketRef.current = io(API_BASE_URL, {
       transports: ["websocket"],
     });
 

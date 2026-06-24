@@ -18,6 +18,7 @@ import {
   formatFileSize,
 } from "@/store/aiResearcher.store";
 import useAuthStore from "@/store/auth.store";
+import { API_BASE_URL } from "@/config/api";
 import { PendingAttachmentsBar } from "./ai-researcher/AttachmentPreview";
 import { formatMarkdownToHtml } from "@/utils/pdfFormatter";
 import {
@@ -402,7 +403,7 @@ export function ResearchCenter({
           setStatusMessage("Retrieving history...");
 
           const res = await fetch(
-            `http://${window.location.hostname}:8000/mira/research/conversations/${activeConvId}/messages`,
+            `${API_BASE_URL}/mira/research/conversations/${activeConvId}/messages`,
           );
           if (res.ok) {
             const data = await res.json();
@@ -628,7 +629,7 @@ export function ResearchCenter({
           : trimmedInput ? (trimmedInput.substring(0, 40) + (trimmedInput.length > 40 ? "..." : "")) : "General Research Session";
 
         await fetch(
-          `http://${window.location.hostname}:8000/mira/research/conversations`,
+          `${API_BASE_URL}/mira/research/conversations`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },

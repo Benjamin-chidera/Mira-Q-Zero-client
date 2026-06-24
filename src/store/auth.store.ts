@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import axios from "axios";
+import { API_BASE_URL } from "@/config/api";
 
 // Cookies are HttpOnly — JS never touches the token.
 // Always send credentials so the browser includes the cookie on every request.
@@ -32,7 +33,7 @@ const useAuthStore = create<AuthStore>()(
       login: async (email, password) => {
         set({ isLoggingIn: true, loginError: null });
         try {
-          const res = await axios.post(`http://${window.location.hostname}:8000/auth/login`, {
+          const res = await axios.post(`${API_BASE_URL}/auth/login`, {
             email: email.trim().toLowerCase(),
             password: password,
           });
@@ -50,7 +51,7 @@ const useAuthStore = create<AuthStore>()(
       setPassword: async (email, password) => {
         set({ isLoggingIn: true, loginError: null });
         try {
-          const res = await axios.post(`http://${window.location.hostname}:8000/auth/set-password`, {
+          const res = await axios.post(`${API_BASE_URL}/auth/set-password`, {
             email: email.trim().toLowerCase(),
             password: password,
           });
@@ -66,7 +67,7 @@ const useAuthStore = create<AuthStore>()(
 
       logout: async () => {
         try {
-          await axios.post(`http://${window.location.hostname}:8000/auth/logout`);
+          await axios.post(`${API_BASE_URL}/auth/logout`);
         } catch {
           // Proceed with local logout even if the server call fails
         }

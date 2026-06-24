@@ -16,6 +16,7 @@ import useConnectStore from "@/store/connect.store";
 import axios from "axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { API_BASE_URL } from "@/config/api";
 
 export const BookingDetailsFilling = () => {
   const [bookingForSelf, setBookingForSelf] = useState(true);
@@ -80,7 +81,7 @@ export const BookingDetailsFilling = () => {
 
     try {
       const res = await axios.post(
-        `http://${window.location.hostname}:8000/consultation/verify-patient`,
+        `${API_BASE_URL}/consultation/verify-patient`,
         {
           given_name: givenName,
           family_name: familyName,

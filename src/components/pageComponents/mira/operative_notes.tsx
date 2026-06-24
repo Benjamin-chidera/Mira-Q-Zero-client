@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import {
   Activity,
   PlusCircle,
@@ -9,65 +9,35 @@ import {
 } from "lucide-react";
 import type { Patient } from "@/store/medTech/patient.store";
 import { useMiraStore } from "@/store/medTech/mira.store";
+import { useClinicalFormStore } from "@/store/medTech/clinicalForm.store";
 
 interface OperativeNotesProps {
   patient: Patient;
 }
 
 export function OperativeNotes({ patient }: OperativeNotesProps) {
-  // Read state and actions directly from the Zustand store
   const {
     operativeNotes,
     isLoadingOperativeNotes,
-    isSavingOperativeNote,
     operativeNotesError,
     fetchOperativeNotes,
-    addOperativeNote,
   } = useMiraStore();
 
-  // Form states (kept local because they are UI-only, component-scoped inputs)
-  const [opProcedureName, setOpProcedureName] = useState("");
-  const [opProcedurePerformed, setOpProcedurePerformed] = useState("");
-  const [opPreOpDiagnosis, setOpPreOpDiagnosis] = useState("");
-  const [opPostOpDiagnosis, setOpPostOpDiagnosis] = useState("");
-  const [opNarrativeText, setOpNarrativeText] = useState("");
-  const [opPostOpInstructions, setOpPostOpInstructions] = useState("");
-  const [opSurgeonName, setOpSurgeonName] = useState("");
-  const [opSurgeryDate, setOpSurgeryDate] = useState("");
+  const {
+    opProcedureName,
+    opProcedurePerformed,
+    opPreOpDiagnosis,
+    opPostOpDiagnosis,
+    opNarrativeText,
+    opPostOpInstructions,
+    opSurgeonName,
+    opSurgeryDate,
+    setFieldValue,
+  } = useClinicalFormStore();
 
-  // Fetch operative notes when component mounts or patient ID changes
   useEffect(() => {
     fetchOperativeNotes(patient.id);
   }, [patient.id, fetchOperativeNotes]);
-
-  // Handle adding new operative note
-  const handleAddOperativeNote = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await addOperativeNote(patient.id, {
-        procedure_name: opProcedureName,
-        procedure_performed: opProcedurePerformed,
-        pre_op_diagnosis: opPreOpDiagnosis,
-        post_op_diagnosis: opPostOpDiagnosis,
-        narrative_text: opNarrativeText,
-        post_op_instructions: opPostOpInstructions,
-        surgeon_name: opSurgeonName,
-        surgery_date: opSurgeryDate,
-      });
-
-      // Clear the local form inputs upon successful submission
-      setOpProcedureName("");
-      setOpProcedurePerformed("");
-      setOpPreOpDiagnosis("");
-      setOpPostOpDiagnosis("");
-      setOpNarrativeText("");
-      setOpPostOpInstructions("");
-      setOpSurgeonName("");
-      setOpSurgeryDate("");
-    } catch (err) {
-      // The store handles logging and setting error state in operativeNotesError.
-    }
-  };
 
   if (isLoadingOperativeNotes) {
     return (
@@ -166,10 +136,7 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
       </div>
 
       {/* Form view */}
-      <form
-        onSubmit={handleAddOperativeNote}
-        className="w-[22.5rem] bg-slate-50/50 p-6 overflow-y-auto shrink-0 flex flex-col justify-between"
-      >
+      <div className="w-[22.5rem] bg-slate-50/50 p-6 overflow-y-auto shrink-0 flex flex-col justify-between">
         <div className="flex flex-col gap-4">
           <h3 className="text-[0.75rem] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
             <PlusCircle className="w-4 h-4 text-[#005EB8]" /> Add Operative Note
@@ -182,9 +149,8 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
               </label>
               <input
                 type="text"
-                required
                 value={opProcedureName}
-                onChange={(e) => setOpProcedureName(e.target.value)}
+                onChange={(e) => setFieldValue("opProcedureName", e.target.value)}
                 placeholder="e.g. Cholecystectomy"
                 className="px-3.5 py-2 text-[0.75rem] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white"
               />
@@ -195,9 +161,8 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
               </label>
               <input
                 type="text"
-                required
                 value={opProcedurePerformed}
-                onChange={(e) => setOpProcedurePerformed(e.target.value)}
+                onChange={(e) => setFieldValue("opProcedurePerformed", e.target.value)}
                 placeholder="e.g. Laparoscopic Cholecystectomy"
                 className="px-3.5 py-2 text-[0.75rem] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white"
               />
@@ -208,9 +173,8 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
               </label>
               <input
                 type="text"
-                required
                 value={opSurgeonName}
-                onChange={(e) => setOpSurgeonName(e.target.value)}
+                onChange={(e) => setFieldValue("opSurgeonName", e.target.value)}
                 placeholder="Dr. Edwards"
                 className="px-3.5 py-2 text-[0.75rem] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white"
               />
@@ -221,10 +185,9 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
               </label>
               <input
                 type="date"
-                required
                 value={opSurgeryDate}
-                onChange={(e) => setOpSurgeryDate(e.target.value)}
-                className="px-3.5 py-2 text-[0.75rem] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white"
+                onChange={(e) => setFieldValue("opSurgeryDate", e.target.value)}
+                className="px-3.5 py-2 text-[0.75rem] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white text-gray-700"
               />
             </div>
             <div className="flex flex-col gap-1">
@@ -234,7 +197,7 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
               <input
                 type="text"
                 value={opPreOpDiagnosis}
-                onChange={(e) => setOpPreOpDiagnosis(e.target.value)}
+                onChange={(e) => setFieldValue("opPreOpDiagnosis", e.target.value)}
                 placeholder="Cholelithiasis"
                 className="px-3.5 py-2 text-[0.75rem] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white"
               />
@@ -246,7 +209,7 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
               <input
                 type="text"
                 value={opPostOpDiagnosis}
-                onChange={(e) => setOpPostOpDiagnosis(e.target.value)}
+                onChange={(e) => setFieldValue("opPostOpDiagnosis", e.target.value)}
                 placeholder="Acute Cholecystitis"
                 className="px-3.5 py-2 text-[0.75rem] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white"
               />
@@ -257,7 +220,7 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
               </label>
               <textarea
                 value={opNarrativeText}
-                onChange={(e) => setOpNarrativeText(e.target.value)}
+                onChange={(e) => setFieldValue("opNarrativeText", e.target.value)}
                 placeholder="Surgical steps detailed..."
                 rows={3}
                 className="px-3.5 py-2 text-[0.75rem] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white resize-none"
@@ -269,7 +232,7 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
               </label>
               <textarea
                 value={opPostOpInstructions}
-                onChange={(e) => setOpPostOpInstructions(e.target.value)}
+                onChange={(e) => setFieldValue("opPostOpInstructions", e.target.value)}
                 placeholder="Ward checks and post-op meds..."
                 rows={2}
                 className="px-3.5 py-2 text-[0.75rem] border border-gray-200 rounded-lg focus:border-[#005EB8] outline-none bg-white resize-none"
@@ -278,17 +241,10 @@ export function OperativeNotes({ patient }: OperativeNotesProps) {
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={isSavingOperativeNote}
-          className="w-full mt-6 py-2.5 bg-[#005EB8] hover:bg-[#004A99] text-white font-bold text-[0.8125rem] rounded-xl shadow-md transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-        >
-          {isSavingOperativeNote && (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          )}
-          Create Operative Note
-        </button>
-      </form>
+        <div className="text-[0.6875rem] text-slate-400 mt-6 text-center font-medium bg-slate-100/50 p-2.5 rounded-lg border border-slate-100">
+          Draft active. Use "Save Clinical Updates" button at the top to commit changes.
+        </div>
+      </div>
     </div>
   );
 }

@@ -2,64 +2,42 @@ import { useState, useEffect } from "react";
 import { ShieldAlert, PlusCircle, Loader2, AlertCircle } from "lucide-react";
 import type { Patient } from "@/store/medTech/patient.store";
 import { useMiraStore } from "@/store/medTech/mira.store";
+import { useClinicalFormStore } from "@/store/medTech/clinicalForm.store";
+import useAuthStore from "@/store/auth.store";
 
 interface AllergyReportProps {
   patient: Patient;
 }
 
 export function AllergyReport({ patient }: AllergyReportProps) {
-  // Read state and actions directly from the Zustand store
   const {
     allergies,
     isLoadingAllergies,
-    isSavingAllergy,
     allergiesError,
     fetchAllergies,
-    addAllergy,
     updateAllergyStatus,
   } = useMiraStore();
 
-  // Form states (kept local because they are UI-only, component-scoped inputs)
-  const [allSubstance, setAllSubstance] = useState("");
-  const [allCriticality, setAllCriticality] = useState("low");
-  const [allReaction, setAllReaction] = useState("");
-  const [allStatus, setAllStatus] = useState("Active");
+  const { user } = useAuthStore();
+
+  const {
+    allSubstance,
+    allCriticality,
+    allReaction,
+    allStatus,
+    setFieldValue,
+  } = useClinicalFormStore();
 
   // Status updating states (kept local as they represent component-scoped temporary UI interaction states)
-  const [updatingItemId, setUpdatingItemId] = useState<number | string | null>(
-    null,
-  );
+  const [updatingItemId, setUpdatingItemId] = useState<number | string | null>(null);
   const [newStatusVal, setNewStatusVal] = useState("");
   const [statusReason, setStatusReason] = useState("");
   const [statusUpdatedBy, setStatusUpdatedBy] = useState("");
 
-  // Fetch allergies when component mounts or patient ID changes
   useEffect(() => {
     fetchAllergies(patient.id);
   }, [patient.id, fetchAllergies]);
 
-  // Handle adding new allergy
-  const handleAddAllergy = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await addAllergy(
-        patient.id,
-        allSubstance,
-        allReaction,
-        allCriticality,
-        allStatus,
-      );
-      // Clear the local form inputs upon successful submission
-      setAllSubstance("");
-      setAllCriticality("low");
-      setAllReaction("");
-      setAllStatus("Active");
-    } catch (err) {
-      // The store handles logging and setting error state in allergiesError.
-    }
-  };
-
-  // Handle updating allergy status
   const handleUpdateAllergyStatus = async (allergyId: number | string) => {
     try {
       await updateAllergyStatus(
@@ -69,13 +47,12 @@ export function AllergyReport({ patient }: AllergyReportProps) {
         statusReason,
         statusUpdatedBy,
       );
-      // Clear status updating UI state upon success
       setUpdatingItemId(null);
       setNewStatusVal("");
       setStatusReason("");
       setStatusUpdatedBy("");
     } catch (err) {
-      // The store handles logging and setting error state in allergiesError.
+      // Handled in store
     }
   };
 
@@ -159,7 +136,7 @@ export function AllergyReport({ patient }: AllergyReportProps) {
                             setUpdatingItemId(allergy.id);
                             setNewStatusVal(allergy.status);
                             setStatusReason(allergy.status_reason || "");
-                            setStatusUpdatedBy(allergy.updated_by || "");
+                            setStatusUpdatedBy(user?.name ? user.name.split(" ")[0] : "Unknown");
                           }}
                           className="text-[0.6875rem] font-bold text-[#005EB8] hover:underline"
                         >
@@ -197,19 +174,6 @@ export function AllergyReport({ patient }: AllergyReportProps) {
                           </select>
                         </div>
                         <div className="flex flex-col gap-1">
-                          <label className="text-[0.5625rem] font-bold text-gray-400 uppercase">
-                            Updated By
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            value={statusUpdatedBy}
-                            onChange={(e) => setStatusUpdatedBy(e.target.value)}
-                            placeholder="GP Name"
-                            className="px-2.5 py-1.5 text-[0.6875rem] border border-slate-200 rounded-lg outline-none"
-                          />
-                        </div>
-                        <div className="col-span-2 flex flex-col gap-1">
                           <label className="text-[0.5625rem] font-bold text-gray-400 uppercase">
                             Reason
                           </label>
@@ -257,10 +221,7 @@ export function AllergyReport({ patient }: AllergyReportProps) {
       </div>
 
       {/* Form view */}
-      <form
-        onSubmit={handleAddAllergy}
-        className="w-[22.5rem] bg-slate-50/50 p-6 overflow-y-auto shrink-0 flex flex-col justify-between"
-      >
+      <div className="w-[22.5rem] bg-slate-50/50 p-6 overflow-y-auto shrink-0 flex flex-col justify-between">
         <div className="flex flex-col gap-4">
           <h3 className="text-[0.75rem] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
             <PlusCircle className="w-4 h-4 text-[#005EB8]" /> Add Allergy
@@ -273,9 +234,8 @@ export function AllergyReport({ patient }: AllergyReportProps) {
               </label>
               <input
                 type="text"
-                required
                 value={allSubstance}
-                onChange={(e) => setAllSubstance(e.target.value)}
+                onChange={(e) => setFieldValue("allSubstance", e.target.value)}
                 placeholder="e.g. Penicillin, Peanuts"
                 className="px-4.5 py-2 text-[0.8125rem] border border-gray-200 rounded-xl focus:border-[#005EB8] outline-none bg-white"
               />
@@ -287,9 +247,8 @@ export function AllergyReport({ patient }: AllergyReportProps) {
               </label>
               <input
                 type="text"
-                required
                 value={allReaction}
-                onChange={(e) => setAllReaction(e.target.value)}
+                onChange={(e) => setFieldValue("allReaction", e.target.value)}
                 placeholder="e.g. Anaphylaxis, hives, rash"
                 className="px-4.5 py-2 text-[0.8125rem] border border-gray-200 rounded-xl focus:border-[#005EB8] outline-none bg-white"
               />
@@ -301,7 +260,7 @@ export function AllergyReport({ patient }: AllergyReportProps) {
               </label>
               <select
                 value={allCriticality}
-                onChange={(e) => setAllCriticality(e.target.value)}
+                onChange={(e) => setFieldValue("allCriticality", e.target.value)}
                 className="px-4.5 py-2 text-[0.8125rem] border border-gray-200 rounded-xl focus:border-[#005EB8] outline-none bg-white"
               >
                 <option value="high">High Risk</option>
@@ -316,7 +275,7 @@ export function AllergyReport({ patient }: AllergyReportProps) {
               </label>
               <select
                 value={allStatus}
-                onChange={(e) => setAllStatus(e.target.value)}
+                onChange={(e) => setFieldValue("allStatus", e.target.value)}
                 className="px-4.5 py-2 text-[0.8125rem] border border-gray-200 rounded-xl focus:border-[#005EB8] outline-none bg-white"
               >
                 <option value="Active">Active</option>
@@ -326,15 +285,10 @@ export function AllergyReport({ patient }: AllergyReportProps) {
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={isSavingAllergy}
-          className="w-full mt-6 py-2.5 bg-[#005EB8] hover:bg-[#004A99] text-white font-bold text-[0.8125rem] rounded-xl shadow-md transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-        >
-          {isSavingAllergy && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-          Log Allergy
-        </button>
-      </form>
+        <div className="text-[0.6875rem] text-slate-400 mt-6 text-center font-medium bg-slate-100/50 p-2.5 rounded-lg border border-slate-100">
+          Draft active. Use "Save Clinical Updates" button at the top to commit changes.
+        </div>
+      </div>
     </div>
   );
 }

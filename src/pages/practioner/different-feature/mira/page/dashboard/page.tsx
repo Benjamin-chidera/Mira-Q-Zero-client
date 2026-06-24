@@ -105,6 +105,8 @@ export default function MedTechDashboard() {
               selectedResearchItem={selectedResearchItem}
               selectedPatient={selectedPatient}
               setIsCallDialogOpen={setIsCallDialogOpen}
+              setActiveView={setActiveView}
+              setCallConfig={setCallConfig}
             />
 
          </main>

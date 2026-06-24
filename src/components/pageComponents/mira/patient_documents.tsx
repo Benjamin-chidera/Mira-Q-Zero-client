@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import {
   FileText,
   PlusCircle,
@@ -8,42 +8,25 @@ import {
 } from "lucide-react";
 import type { Patient } from "@/store/medTech/patient.store";
 import { useMiraStore } from "@/store/medTech/mira.store";
+import { useClinicalFormStore } from "@/store/medTech/clinicalForm.store";
 
 interface PatientDocumentsProps {
   patient: Patient;
 }
 
 export function PatientDocuments({ patient }: PatientDocumentsProps) {
-  // Read state and actions directly from the Zustand store
   const {
     documents,
     isLoadingDocuments,
-    isSavingDocument,
     documentsError,
     fetchDocuments,
-    addDocument,
   } = useMiraStore();
 
-  // Form states (kept local because they are UI-only, component-scoped inputs)
-  const [docTitle, setDocTitle] = useState("");
-  const [docContent, setDocContent] = useState("");
+  const { docTitle, docContent, setFieldValue } = useClinicalFormStore();
 
-  // Fetch data when component mounts or patient ID changes
   useEffect(() => {
     fetchDocuments(patient.id);
   }, [patient.id, fetchDocuments]);
-
-  // Handle adding new document
-  const handleAddDocument = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await addDocument(patient.id, docTitle, docContent);
-      setDocTitle("");
-      setDocContent("");
-    } catch (err) {
-      // The store handles logging and setting error state in documentsError.
-    }
-  };
 
   if (isLoadingDocuments) {
     return (
@@ -100,10 +83,7 @@ export function PatientDocuments({ patient }: PatientDocumentsProps) {
       </div>
 
       {/* Form view (right pane of right tab area) */}
-      <form
-        onSubmit={handleAddDocument}
-        className="w-[22.5rem] bg-slate-50/50 p-6 overflow-y-auto shrink-0 flex flex-col justify-between"
-      >
+      <div className="w-[22.5rem] bg-slate-50/50 p-6 overflow-y-auto shrink-0 flex flex-col justify-between">
         <div className="flex flex-col gap-4">
           <h3 className="text-[0.75rem] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
             <PlusCircle className="w-4 h-4 text-[#005EB8]" /> Add New Document
@@ -115,9 +95,8 @@ export function PatientDocuments({ patient }: PatientDocumentsProps) {
             </label>
             <input
               type="text"
-              required
               value={docTitle}
-              onChange={(e) => setDocTitle(e.target.value)}
+              onChange={(e) => setFieldValue("docTitle", e.target.value)}
               placeholder="e.g. Cardiorenal Baseline Summary"
               className="px-4.5 py-2.5 text-[0.8125rem] border border-gray-200 rounded-xl focus:border-[#005EB8] outline-none bg-white"
             />
@@ -128,25 +107,19 @@ export function PatientDocuments({ patient }: PatientDocumentsProps) {
               Content Description
             </label>
             <textarea
-              required
               value={docContent}
-              onChange={(e) => setDocContent(e.target.value)}
+              onChange={(e) => setFieldValue("docContent", e.target.value)}
               placeholder="Clinical summaries, diagnoses, or letters..."
-              rows={6}
+              rows={8}
               className="px-4.5 py-3 text-[0.8125rem] border border-gray-200 rounded-xl focus:border-[#005EB8] outline-none bg-white resize-none"
             />
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={isSavingDocument}
-          className="w-full mt-6 py-2.5 bg-[#005EB8] hover:bg-[#004A99] text-white font-bold text-[0.8125rem] rounded-xl shadow-md transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-        >
-          {isSavingDocument && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-          Create Document
-        </button>
-      </form>
+        <div className="text-[0.6875rem] text-slate-400 mt-6 text-center font-medium bg-slate-100/50 p-2.5 rounded-lg border border-slate-100">
+          Draft active. Use "Save Clinical Updates" button at the top to commit changes.
+        </div>
+      </div>
     </div>
   );
 }

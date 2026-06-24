@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import useAuthStore from "@/store/auth.store";
+import { API_BASE_URL } from "@/config/api";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -42,7 +43,7 @@ const LoginPage = () => {
 
     setCheckingEmail(true);
     try {
-      const res = await axios.post(`http://${window.location.hostname}:8000/auth/check-email`, { email: email.trim().toLowerCase() });
+      const res = await axios.post(`${API_BASE_URL}/auth/check-email`, { email: email.trim().toLowerCase() });
       if (!res.data.exists) {
         setError("Email not found. Contact your administrator if you need an account.");
       } else {

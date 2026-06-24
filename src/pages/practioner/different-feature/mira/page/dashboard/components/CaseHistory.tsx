@@ -7,6 +7,7 @@ import {
   AlertDialogContent,
   AlertDialogCancel,
 } from "@/components/ui/alert-dialog";
+import { API_BASE_URL } from "@/config/api";
 
 interface CaseHistoryProps {
   caseMode: "patient" | "research";
@@ -154,7 +155,7 @@ export function CaseHistory({
       try {
         setIsLoading(true);
         const res = await fetch(
-          `http://${window.location.hostname}:8000/mira/case-history?practitioner_id=${user.id}&status=${caseFilter}`,
+          `${API_BASE_URL}/mira/case-history?practitioner_id=${user.id}&status=${caseFilter}`,
         );
         if (res.ok) {
           const data = await res.json();
@@ -175,7 +176,7 @@ export function CaseHistory({
     try {
       setIsLoading(true);
       const res = await fetch(
-        `http://${window.location.hostname}:8000/mira/case-history/${conversationId}/details`,
+        `${API_BASE_URL}/mira/case-history/${conversationId}/details`,
       );
       if (res.ok) {
         const data = await res.json();

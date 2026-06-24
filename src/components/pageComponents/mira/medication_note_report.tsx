@@ -2,64 +2,42 @@ import { useState, useEffect } from "react";
 import { Pill, PlusCircle, Loader2, AlertCircle } from "lucide-react";
 import type { Patient } from "@/store/medTech/patient.store";
 import { useMiraStore } from "@/store/medTech/mira.store";
+import { useClinicalFormStore } from "@/store/medTech/clinicalForm.store";
+import useAuthStore from "@/store/auth.store";
 
 interface MedicationNoteReportProps {
   patient: Patient;
 }
 
 export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
-  // Read state and actions directly from the Zustand store
   const {
     medications,
     isLoadingMedications,
-    isSavingMedication,
     medicationsError,
     fetchMedications,
-    addMedication,
     updateMedicationStatus,
   } = useMiraStore();
 
-  // Form states (kept local because they are UI-only, component-scoped inputs)
-  const [medDrugName, setMedDrugName] = useState("");
-  const [medDosage, setMedDosage] = useState("");
-  const [medFrequency, setMedFrequency] = useState("");
-  const [medStatus, setMedStatus] = useState("Active");
+  const { user } = useAuthStore();
 
-  // Status updating states (kept local as they represent component-scoped temporary UI interaction states)
-  const [updatingItemId, setUpdatingItemId] = useState<number | string | null>(
-    null,
-  );
+  const {
+    medDrugName,
+    medDosage,
+    medFrequency,
+    medStatus,
+    setFieldValue,
+  } = useClinicalFormStore();
+
+  // Status updating states for existing meds (kept local as they represent component-scoped temporary UI interaction states)
+  const [updatingItemId, setUpdatingItemId] = useState<number | string | null>(null);
   const [newStatusVal, setNewStatusVal] = useState("");
   const [statusReason, setStatusReason] = useState("");
   const [statusUpdatedBy, setStatusUpdatedBy] = useState("");
 
-  // Fetch medications when component mounts or patient ID changes
   useEffect(() => {
     fetchMedications(patient.id);
   }, [patient.id, fetchMedications]);
 
-  // Handle adding new medication
-  const handleAddMedication = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      await addMedication(
-        patient.id,
-        medDrugName,
-        medDosage,
-        medFrequency,
-        medStatus,
-      );
-      // Clear the local form inputs upon successful submission
-      setMedDrugName("");
-      setMedDosage("");
-      setMedFrequency("");
-      setMedStatus("Active");
-    } catch (err) {
-      // The store handles logging and setting error state in medicationsError.
-    }
-  };
-
-  // Handle updating medication status
   const handleUpdateMedicationStatus = async (medId: number | string) => {
     try {
       await updateMedicationStatus(
@@ -69,13 +47,12 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
         statusReason,
         statusUpdatedBy,
       );
-      // Clear status updating UI state upon success
       setUpdatingItemId(null);
       setNewStatusVal("");
       setStatusReason("");
       setStatusUpdatedBy("");
     } catch (err) {
-      // The store handles logging and setting error state in medicationsError.
+      // Handled in store
     }
   };
 
@@ -148,7 +125,7 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
                             setUpdatingItemId(med.id);
                             setNewStatusVal(med.status);
                             setStatusReason(med.status_reason || "");
-                            setStatusUpdatedBy(med.updated_by || "");
+                            setStatusUpdatedBy(user?.name ? user.name.split(" ")[0] : "Unknown");
                           }}
                           className="text-[0.6875rem] font-bold text-[#005EB8] hover:underline"
                         >
@@ -187,19 +164,6 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
                           </select>
                         </div>
                         <div className="flex flex-col gap-1">
-                          <label className="text-[0.5625rem] font-bold text-gray-400 uppercase">
-                            Updated By
-                          </label>
-                          <input
-                            type="text"
-                            required
-                            value={statusUpdatedBy}
-                            onChange={(e) => setStatusUpdatedBy(e.target.value)}
-                            placeholder="GP Name"
-                            className="px-2.5 py-1.5 text-[0.6875rem] border border-slate-200 rounded-lg outline-none"
-                          />
-                        </div>
-                        <div className="col-span-2 flex flex-col gap-1">
                           <label className="text-[0.5625rem] font-bold text-gray-400 uppercase">
                             Reason
                           </label>
@@ -246,10 +210,7 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
       </div>
 
       {/* Form view */}
-      <form
-        onSubmit={handleAddMedication}
-        className="w-[22.5rem] bg-slate-50/50 p-6 overflow-y-auto shrink-0 flex flex-col justify-between"
-      >
+      <div className="w-[22.5rem] bg-slate-50/50 p-6 overflow-y-auto shrink-0 flex flex-col justify-between">
         <div className="flex flex-col gap-4">
           <h3 className="text-[0.75rem] font-bold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
             <PlusCircle className="w-4 h-4 text-[#005EB8]" /> Add Medication
@@ -262,9 +223,8 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
               </label>
               <input
                 type="text"
-                required
                 value={medDrugName}
-                onChange={(e) => setMedDrugName(e.target.value)}
+                onChange={(e) => setFieldValue("medDrugName", e.target.value)}
                 placeholder="e.g. Ramipril"
                 className="px-4.5 py-2 text-[0.8125rem] border border-gray-200 rounded-xl focus:border-[#005EB8] outline-none bg-white"
               />
@@ -276,9 +236,8 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
               </label>
               <input
                 type="text"
-                required
                 value={medDosage}
-                onChange={(e) => setMedDosage(e.target.value)}
+                onChange={(e) => setFieldValue("medDosage", e.target.value)}
                 placeholder="e.g. 5mg"
                 className="px-4.5 py-2 text-[0.8125rem] border border-gray-200 rounded-xl focus:border-[#005EB8] outline-none bg-white"
               />
@@ -290,9 +249,8 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
               </label>
               <input
                 type="text"
-                required
                 value={medFrequency}
-                onChange={(e) => setMedFrequency(e.target.value)}
+                onChange={(e) => setFieldValue("medFrequency", e.target.value)}
                 placeholder="e.g. Once Daily"
                 className="px-4.5 py-2 text-[0.8125rem] border border-gray-200 rounded-xl focus:border-[#005EB8] outline-none bg-white"
               />
@@ -304,7 +262,7 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
               </label>
               <select
                 value={medStatus}
-                onChange={(e) => setMedStatus(e.target.value)}
+                onChange={(e) => setFieldValue("medStatus", e.target.value)}
                 className="px-4.5 py-2 text-[0.8125rem] border border-gray-200 rounded-xl focus:border-[#005EB8] outline-none bg-white"
               >
                 <option value="Active">Active</option>
@@ -315,17 +273,10 @@ export function MedicationNoteReport({ patient }: MedicationNoteReportProps) {
           </div>
         </div>
 
-        <button
-          type="submit"
-          disabled={isSavingMedication}
-          className="w-full mt-6 py-2.5 bg-[#005EB8] hover:bg-[#004A99] text-white font-bold text-[0.8125rem] rounded-xl shadow-md transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
-        >
-          {isSavingMedication && (
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-          )}
-          Create Prescription
-        </button>
-      </form>
+        <div className="text-[0.6875rem] text-slate-400 mt-6 text-center font-medium bg-slate-100/50 p-2.5 rounded-lg border border-slate-100">
+          Draft active. Use "Save Clinical Updates" button at the top to commit changes.
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,11 +1,14 @@
-import { AlertCircle, Info, Search } from "lucide-react";
+import { useState } from "react";
+import { AlertCircle, Info, ChevronDown, ChevronUp, Send, Loader2, Sparkles } from "lucide-react";
 import type { AllergyRecord, MedicationRecord } from "@/store/medTech/mira.store";
+import { API_BASE_URL } from "@/config/api";
 
 interface SummaryTabProps {
   allergies: AllergyRecord[];
   allergiesError: string | null;
   medications: MedicationRecord[];
   medicationsError: string | null;
+  patientId: number | string;
 }
 
 export function SummaryTab({
@@ -13,9 +16,104 @@ export function SummaryTab({
   allergiesError,
   medications,
   medicationsError,
+  patientId,
 }: SummaryTabProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [question, setQuestion] = useState("");
+  const [answer, setAnswer] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!question.trim()) return;
+
+    setIsLoading(true);
+    setError(null);
+    setAnswer(null);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/medTech/patients/${patientId}/ask-mira`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ question }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to get answer from Mira");
+      }
+
+      const data = await response.json();
+      setAnswer(data.answer);
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || "An unexpected error occurred.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <>
+      {/* Ask Mira Collapsible Section */}
+      <div className="bg-gradient-to-r from-blue-50/50 to-indigo-50/50 border border-blue-100 rounded-xl overflow-hidden shadow-sm mb-1">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full flex items-center justify-between p-4 text-[0.8125rem] font-bold text-gray-900 hover:bg-blue-50/30 transition-colors"
+        >
+          <div className="flex items-center gap-2 text-[#005EB8]">
+            <Sparkles className="w-4 h-4 text-[#005EB8] animate-pulse" />
+            <span>Ask Mira</span>
+          </div>
+          {isOpen ? (
+            <ChevronUp className="w-4 h-4 text-gray-500" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-gray-500" />
+          )}
+        </button>
+
+        {isOpen && (
+          <div className="p-4 pt-0 border-t border-blue-50 bg-white/70 backdrop-blur-xs flex flex-col gap-3">
+            <form onSubmit={handleSubmit} className="flex gap-2 items-start mt-3">
+              <textarea
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                placeholder="Ask Mira a clinical question about this patient..."
+                className="flex-1 min-h-[4.5rem] max-h-32 text-[0.8125rem] p-2.5 rounded-lg border border-gray-200 focus:outline-none focus:ring-1 focus:ring-[#005EB8] focus:border-[#005EB8] resize-none"
+                disabled={isLoading}
+              />
+              <button
+                type="submit"
+                disabled={isLoading || !question.trim()}
+                className="bg-[#005EB8] hover:bg-[#004A99] disabled:opacity-50 text-white p-2.5 rounded-lg transition-colors cursor-pointer shrink-0 animate-pulse-once"
+              >
+                {isLoading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
+              </button>
+            </form>
+
+            {error && (
+              <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-xs text-red-600 font-medium">
+                {error}
+              </div>
+            )}
+
+            {answer && (
+              <div className="p-3.5 bg-blue-50/50 border border-blue-100/70 rounded-lg text-[0.8125rem] leading-relaxed text-gray-800 font-medium">
+                <div className="text-[0.625rem] font-bold text-[#005EB8] uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                  <span>Mira's Response:</span>
+                </div>
+                <div className="whitespace-pre-line font-medium text-gray-700">{answer}</div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
       {/* Critical Allergies Alert Box */}
       {allergiesError ? (
         <div className="bg-red-50 p-4 rounded-xl border border-red-100">
@@ -167,15 +265,6 @@ export function SummaryTab({
                   <span className="text-[0.75rem] font-medium text-gray-500">
                     {med.updated_by || "Dr. Clinician Name"}
                   </span>
-                  <button
-                    className="flex items-center gap-1.5 text-[0.6875rem] font-bold text-[#005EB8] bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg transition-colors relative z-101"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      console.log("Send to Screen 2");
-                    }}
-                  >
-                    <Search className="w-3.5 h-3.5" /> Ask Agent
-                  </button>
                 </div>
 
                 {/* Detailed Hover Tooltip */}

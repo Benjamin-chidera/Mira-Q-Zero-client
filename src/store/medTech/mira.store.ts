@@ -1,7 +1,5 @@
 import { create } from 'zustand';
-
-// Named constant for the API base URL to avoid hardcoded magic strings in fetch calls.
-const API_BASE_URL = `http://${window.location.hostname}:8000`;
+import { API_BASE_URL } from '@/config/api';
 
 export interface ClinicalDocument {
   id: number | string;
@@ -123,7 +121,8 @@ interface MiraStore {
     drugName: string,
     dosage: string,
     frequency: string,
-    status: string
+    status: string,
+    updatedBy?: string
   ) => Promise<void>;
   updateMedicationStatus: (
     patientId: number | string,
@@ -140,7 +139,8 @@ interface MiraStore {
     substance: string,
     reaction: string,
     criticality: string,
-    status: string
+    status: string,
+    updatedBy?: string
   ) => Promise<void>;
   updateAllergyStatus: (
     patientId: number | string,
@@ -344,7 +344,7 @@ export const useMiraStore = create<MiraStore>((set, get) => ({
     }
   },
 
-  addMedication: async (patientId, drugName, dosage, frequency, status) => {
+  addMedication: async (patientId, drugName, dosage, frequency, status, updatedBy) => {
     set({ isSavingMedication: true, medicationsError: null });
     try {
       const response = await fetch(`${API_BASE_URL}/mira/medication/`, {
@@ -356,6 +356,7 @@ export const useMiraStore = create<MiraStore>((set, get) => ({
           dosage,
           frequency,
           status,
+          updated_by: updatedBy,
         }),
       });
 
@@ -422,7 +423,7 @@ export const useMiraStore = create<MiraStore>((set, get) => ({
     }
   },
 
-  addAllergy: async (patientId, substance, reaction, criticality, status) => {
+  addAllergy: async (patientId, substance, reaction, criticality, status, updatedBy) => {
     set({ isSavingAllergy: true, allergiesError: null });
     try {
       const response = await fetch(`${API_BASE_URL}/mira/allergy/`, {
@@ -434,6 +435,7 @@ export const useMiraStore = create<MiraStore>((set, get) => ({
           criticality,
           reaction,
           status,
+          updated_by: updatedBy,
         }),
       });
 

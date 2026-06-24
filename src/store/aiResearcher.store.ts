@@ -2,6 +2,7 @@ import { create } from "zustand";
 import axios from "axios";
 import { io, Socket } from "socket.io-client";
 import useAuthStore from "./auth.store";
+import { API_BASE_URL } from "@/config/api";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -130,7 +131,7 @@ export const useAIResearcherStore = create<AIResearcherStore>((set, get) => ({
     let currentSocket = get().socket;
     if (currentSocket) return;
 
-    const newSocket = io(`http://${window.location.hostname}:8000`);
+    const newSocket = io(API_BASE_URL);
 
     newSocket.on("connect", () => {
       console.log("[Socket.IO] Connected to MIRA AI Research server");
@@ -191,7 +192,7 @@ export const useAIResearcherStore = create<AIResearcherStore>((set, get) => ({
 
   fetchConversations: async (practitionerId) => {
     try {
-      const url = `http://${window.location.hostname}:8000/mira/research/conversations?practitioner_id=${practitionerId}`;
+      const url = `${API_BASE_URL}/mira/research/conversations?practitioner_id=${practitionerId}`;
       const { data } = await axios.get(url);
       set({ conversations: data });
     } catch (err) {
@@ -201,7 +202,7 @@ export const useAIResearcherStore = create<AIResearcherStore>((set, get) => ({
 
   fetchMessages: async (conversationId) => {
     try {
-      const url = `http://${window.location.hostname}:8000/mira/research/conversations/${conversationId}/messages`;
+      const url = `${API_BASE_URL}/mira/research/conversations/${conversationId}/messages`;
       const { data } = await axios.get(url);
       set((state) => ({
         conversations: state.conversations.map((conv) => {
@@ -235,7 +236,7 @@ export const useAIResearcherStore = create<AIResearcherStore>((set, get) => ({
     });
 
     try {
-      const url = `http://${window.location.hostname}:8000/mira/research/conversations/${id}${
+      const url = `${API_BASE_URL}/mira/research/conversations/${id}${
         reason ? `?reason=${encodeURIComponent(reason)}` : ""
       }`;
       await axios.delete(url);
@@ -255,7 +256,7 @@ export const useAIResearcherStore = create<AIResearcherStore>((set, get) => ({
     }));
 
     try {
-      const url = `http://${window.location.hostname}:8000/mira/research/conversations/${id}/status`;
+      const url = `${API_BASE_URL}/mira/research/conversations/${id}/status`;
       await axios.patch(url, { status, reason });
     } catch (err) {
       console.error("[AI Researcher] Failed to update conversation status on server:", err);
@@ -346,7 +347,7 @@ export const useAIResearcherStore = create<AIResearcherStore>((set, get) => ({
       };
 
       try {
-        const url = `http://${window.location.hostname}:8000/mira/research/conversations`;
+        const url = `${API_BASE_URL}/mira/research/conversations`;
         await axios.post(url, {
           id: activeConversationId,
           practitioner_id: user.id,
@@ -409,7 +410,7 @@ export const useAIResearcherStore = create<AIResearcherStore>((set, get) => ({
 
         try {
           // Sync database table conversation type to "call"
-          const url = `http://${window.location.hostname}:8000/mira/research/conversations`;
+          const url = `${API_BASE_URL}/mira/research/conversations`;
           await axios.post(url, {
             id: activeConversationId,
             practitioner_id: practitionerId,
@@ -450,7 +451,7 @@ export const useAIResearcherStore = create<AIResearcherStore>((set, get) => ({
         }));
 
         try {
-          const url = `http://${window.location.hostname}:8000/mira/research/conversations`;
+          const url = `${API_BASE_URL}/mira/research/conversations`;
           await axios.post(url, {
             id: activeConversationId,
             practitioner_id: practitionerId,
@@ -485,7 +486,7 @@ export const useAIResearcherStore = create<AIResearcherStore>((set, get) => ({
     }));
 
     try {
-      const url = `http://${window.location.hostname}:8000/mira/research/conversations`;
+      const url = `${API_BASE_URL}/mira/research/conversations`;
       await axios.post(url, {
         id: convId,
         practitioner_id: practitionerId,
