@@ -1,12 +1,13 @@
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowLeft } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowLeft, Sparkles } from "lucide-react";
 import axios from "axios";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import useAuthStore from "@/store/auth.store";
 import { API_BASE_URL } from "@/config/api";
+import { OnboardingModal } from "@/components/pageComponents/connect/OnboardingModal";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -27,6 +28,15 @@ const LoginPage = () => {
   
   const [error, setError] = useState("");
   const [checkingEmail, setCheckingEmail] = useState(false);
+
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+
+  useEffect(() => {
+    const isDismissed = localStorage.getItem("mira_login_onboarding_dismissed");
+    if (!isDismissed) {
+      setIsOnboardingOpen(true);
+    }
+  }, []);
 
   const handleEmailSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -100,6 +110,25 @@ const LoginPage = () => {
     setError("");
     setPasswordInput("");
     setConfirmPassword("");
+  };
+
+  const handleAutoFillAndLogin = async () => {
+    setError("");
+    const testEmail = "house@gpconnect.nhs.uk";
+    const testPass = "Password123!";
+    setEmail(testEmail);
+    setPasswordInput(testPass);
+    setEmployeeName("Gregory House");
+    setStep("login");
+
+    try {
+      const success = await login(testEmail, testPass);
+      if (success) {
+        navigate("/practioner/medTech/dashboard", { replace: true });
+      }
+    } catch (err: any) {
+      setError("Failed to auto-login. Please try manual login.");
+    }
   };
 
   return (
@@ -185,10 +214,27 @@ const LoginPage = () => {
                 <Button
                   type="submit"
                   disabled={checkingEmail}
-                  className="w-full bg-[#005EB8] hover:bg-[#004C99] text-white font-semibold py-5 h-auto rounded-xl shadow-md shadow-[#005EB8]/20 transition-all mt-1"
+                  className="w-full bg-[#005EB8] hover:bg-[#004C99] text-white font-semibold py-5 h-auto rounded-xl shadow-md shadow-[#005EB8]/20 transition-all mt-1 cursor-pointer"
                 >
                   {checkingEmail ? "Checking..." : "Continue"}
                 </Button>
+
+                {/* Showcase Quick Access Button */}
+                <div className="relative flex py-2 items-center">
+                  <div className="flex-grow border-t border-slate-200"></div>
+                  <span className="flex-shrink mx-4 text-[0.625rem] text-slate-400 font-bold uppercase tracking-wider">Quick Access</span>
+                  <div className="flex-grow border-t border-slate-200"></div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleAutoFillAndLogin}
+                  disabled={isLoggingIn}
+                  className="w-full bg-[#005EB8] hover:bg-[#004C99] text-white font-semibold py-5 h-auto rounded-xl shadow-md shadow-[#005EB8]/20 transition-all flex items-center justify-center gap-2 cursor-pointer border-none text-sm"
+                >
+                  <Sparkles className="w-4 h-4 text-amber-300 fill-amber-300 animate-pulse" />
+                  Auto-Fill & Sign In (Dr. House)
+                </button>
               </form>
             )}
 
@@ -224,7 +270,7 @@ const LoginPage = () => {
                 <Button
                   type="submit"
                   disabled={isLoggingIn}
-                  className="w-full bg-[#005EB8] hover:bg-[#004C99] text-white font-semibold py-5 h-auto rounded-xl shadow-md shadow-[#005EB8]/20 transition-all mt-1"
+                  className="w-full bg-[#005EB8] hover:bg-[#004C99] text-white font-semibold py-5 h-auto rounded-xl shadow-md shadow-[#005EB8]/20 transition-all mt-1 cursor-pointer"
                 >
                   {isLoggingIn ? "Signing in..." : "Sign In"}
                 </Button>
@@ -289,7 +335,7 @@ const LoginPage = () => {
                 <Button
                   type="submit"
                   disabled={isLoggingIn}
-                  className="w-full bg-[#005EB8] hover:bg-[#004C99] text-white font-semibold py-5 h-auto rounded-xl shadow-md shadow-[#005EB8]/20 transition-all mt-1"
+                  className="w-full bg-[#005EB8] hover:bg-[#004C99] text-white font-semibold py-5 h-auto rounded-xl shadow-md shadow-[#005EB8]/20 transition-all mt-1 cursor-pointer"
                 >
                   {isLoggingIn ? "Setting up..." : "Set Password & Sign In"}
                 </Button>
@@ -305,6 +351,33 @@ const LoginPage = () => {
           Contact your administrator if you need an account.
         </p>
       </div>
+
+      {/* Onboarding welcome walkthrough modal */}
+      <OnboardingModal
+        isOpen={isOnboardingOpen}
+        onClose={() => setIsOnboardingOpen(false)}
+        title="MIRA Clinician Portal Onboarding 🧠"
+        subtitle="Walkthrough of the clinician sandbox and access credentials."
+        localStorageKey="mira_login_onboarding_dismissed"
+        steps={[
+          {
+            title: "Quick Auto-Login",
+            desc: "Click the 'Auto-Fill & Sign In' button on the login form to automatically populate test credentials and enter the portal."
+          },
+          {
+            title: "Access Patient Records",
+            desc: "Select a test patient like 'Jane Smith' to view clinical profiles, allergies, active medications, and consults."
+          },
+          {
+            title: "Ask Mira & Voice Scheduler",
+            desc: "Submit clinical questions to the AI assistant, manage background research tasks, or trigger Voice Scheduling calls."
+          }
+        ]}
+        credentials={{
+          email: "house@gpconnect.nhs.uk",
+          pass: "Password123!"
+        }}
+      />
     </div>
   );
 };
