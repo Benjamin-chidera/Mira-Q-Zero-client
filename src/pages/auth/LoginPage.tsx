@@ -1,6 +1,6 @@
 import { useState, type FormEvent, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowLeft, Sparkles } from "lucide-react";
+import { Mail, Lock, Eye, EyeOff, AlertCircle, ArrowLeft } from "lucide-react";
 import axios from "axios";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -218,23 +218,6 @@ const LoginPage = () => {
                 >
                   {checkingEmail ? "Checking..." : "Continue"}
                 </Button>
-
-                {/* Showcase Quick Access Button */}
-                <div className="relative flex py-2 items-center">
-                  <div className="flex-grow border-t border-slate-200"></div>
-                  <span className="flex-shrink mx-4 text-[0.625rem] text-slate-400 font-bold uppercase tracking-wider">Quick Access</span>
-                  <div className="flex-grow border-t border-slate-200"></div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleAutoFillAndLogin}
-                  disabled={isLoggingIn}
-                  className="w-full bg-[#005EB8] hover:bg-[#004C99] text-white font-semibold py-5 h-auto rounded-xl shadow-md shadow-[#005EB8]/20 transition-all flex items-center justify-center gap-2 cursor-pointer border-none text-sm"
-                >
-                  <Sparkles className="w-4 h-4 text-amber-300 fill-amber-300 animate-pulse" />
-                  Auto-Fill & Sign In (Dr. House)
-                </button>
               </form>
             )}
 
@@ -348,7 +331,13 @@ const LoginPage = () => {
         <p className="text-center text-xs text-gray-400 mt-6 leading-relaxed">
           Access is restricted to registered staff only.
           <br />
-          Contact your administrator if you need an account.
+          <button 
+            type="button"
+            onClick={() => setIsOnboardingOpen(true)}
+            className="text-[#005EB8] hover:underline font-semibold mt-1.5 bg-transparent border-none cursor-pointer text-xs"
+          >
+            Show Onboarding Guide & Credentials
+          </button>
         </p>
       </div>
 
@@ -359,10 +348,12 @@ const LoginPage = () => {
         title="MIRA Clinician Portal Onboarding 🧠"
         subtitle="Walkthrough of the clinician sandbox and access credentials."
         localStorageKey="mira_login_onboarding_dismissed"
+        actionLabel="Auto-Fill & Sign In"
+        onActionClick={handleAutoFillAndLogin}
         steps={[
           {
             title: "Quick Auto-Login",
-            desc: "Click the 'Auto-Fill & Sign In' button on the login form to automatically populate test credentials and enter the portal."
+            desc: "Click the 'Auto-Fill & Sign In' button at the bottom of this modal to log in automatically."
           },
           {
             title: "Access Patient Records",
