@@ -1,5 +1,4 @@
-import { useState, useRef, useEffect, Fragment } from "react";
-import type { ReactNode } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
   X,
   Send,

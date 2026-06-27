@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { AlertCircle, Info, ChevronDown, ChevronUp, Send, Loader2, Sparkles } from "lucide-react";
 import type { AllergyRecord, MedicationRecord } from "@/store/medTech/mira.store";
-import { API_BASE_URL } from "@/config/api";
 import { renderMarkdownContent } from "@/utils/markdownRenderer";
 import { useAIResearcherStore } from "@/store/aiResearcher.store";
 import { useEffect } from "react";

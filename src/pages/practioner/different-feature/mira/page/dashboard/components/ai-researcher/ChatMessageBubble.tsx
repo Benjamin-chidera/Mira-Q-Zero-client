@@ -1,5 +1,3 @@
-import { Fragment } from "react";
-import type { ReactNode } from "react";
 import { FileText, Plus, ExternalLink } from "lucide-react";
 import type { ChatMessage } from "@/store/aiResearcher.store";
 import { AttachmentPreview } from "./AttachmentPreview";
