@@ -21,6 +21,7 @@ import useAuthStore from "@/store/auth.store";
 import { API_BASE_URL } from "@/config/api";
 import { PendingAttachmentsBar } from "./ai-researcher/AttachmentPreview";
 import { formatMarkdownToHtml } from "@/utils/pdfFormatter";
+import { renderMarkdownContent } from "@/utils/markdownRenderer";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -53,150 +54,7 @@ function fileToBase64(file: File): Promise<string> {
   });
 }
 
-function renderResultMarkdown(content: string) {
-  const lines = content.split("\n");
 
-  return lines.map((line, lineIndex) => {
-    if (/^[=-]{3,}$/.test(line.trim())) {
-      return <hr key={lineIndex} className="my-4 border-gray-200" />;
-    }
-
-    const headingMatch = line.match(/^(#{1,6})\s+(.*)$/);
-    if (headingMatch) {
-      const level = headingMatch[1].length;
-      const text = headingMatch[2];
-      const parsedText = parseInlineResultStyling(text);
-
-      const headerClasses =
-        level === 1
-          ? "text-[1.375rem] font-bold text-gray-950 mt-6 mb-3 font-heading"
-          : level === 2
-            ? "text-[1.1875rem] font-bold text-gray-900 mt-5 mb-2.5 font-heading"
-            : "text-[1.0625rem] font-bold text-gray-800 mt-4 mb-2 font-heading";
-
-      return (
-        <div key={lineIndex} className={headerClasses}>
-          {parsedText}
-        </div>
-      );
-    }
-
-    const bulletMatch = line.match(/^(\*|-)\s+(.*)$/);
-    if (bulletMatch) {
-      const text = bulletMatch[2];
-      return (
-        <div
-          key={lineIndex}
-          className="flex gap-2 pl-4 py-1 text-[0.875rem] leading-relaxed text-gray-800"
-        >
-          <span className="text-[#005EB8] shrink-0 mt-1.5 select-none text-xs">
-            •
-          </span>
-          <span className="flex-1">{parseInlineResultStyling(text)}</span>
-        </div>
-      );
-    }
-
-    if (line.trim() === "") {
-      return <div key={lineIndex} className="h-3" />;
-    }
-
-    return (
-      <div
-        key={lineIndex}
-        className="text-gray-800 text-[0.875rem] leading-relaxed my-1.5"
-      >
-        {parseInlineResultStyling(line)}
-      </div>
-    );
-  });
-}
-
-function parseInlineResultStyling(text: string): ReactNode[] {
-  const regex = /(\*\*.*?\*\*|\[.*?\]\(.*?\)|<https?:\/\/.*?>)/g;
-  const parts = text.split(regex);
-
-  return parts.map((part, index) => {
-    if (part.startsWith("**") && part.endsWith("**")) {
-      const boldText = part.slice(2, -2);
-      return (
-        <strong key={index} className="font-bold text-gray-950">
-          {boldText}
-        </strong>
-      );
-    }
-
-    if (part.startsWith("[") && part.includes("](")) {
-      const closingBracketIndex = part.indexOf("]");
-      const anchorText = part.slice(1, closingBracketIndex);
-      const url = part.slice(closingBracketIndex + 2, -1);
-      return (
-        <a
-          key={index}
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[#005EB8] hover:underline font-bold inline-flex items-center gap-0.5 cursor-pointer"
-        >
-          {anchorText}
-        </a>
-      );
-    }
-
-    if (part.startsWith("<") && part.endsWith(">")) {
-      const url = part.slice(1, -1);
-      return (
-        <a
-          key={index}
-          href={url}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[#005EB8] hover:underline font-bold inline-flex items-center gap-0.5 cursor-pointer"
-        >
-          {url}
-        </a>
-      );
-    }
-
-    const urlRegex = /(https?:\/\/[^\s\)]+)/g;
-    if (urlRegex.test(part)) {
-      const subparts = part.split(urlRegex);
-      return (
-        <span key={index}>
-          {subparts.map((subpart, subIndex) => {
-            if (
-              subpart.startsWith("http://") ||
-              subpart.startsWith("https://")
-            ) {
-              let cleanUrl = subpart;
-              let trailing = "";
-              if (cleanUrl.endsWith(".") || cleanUrl.endsWith(",")) {
-                trailing = cleanUrl.slice(-1);
-                cleanUrl = cleanUrl.slice(0, -1);
-              }
-              return (
-                <Fragment key={subIndex}>
-                  <a
-                    href={cleanUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-[#005EB8] hover:underline font-bold inline-flex items-center gap-0.5 cursor-pointer"
-                  >
-                    {cleanUrl}
-                  </a>
-                  {trailing}
-                </Fragment>
-              );
-            }
-            return <span key={subIndex}>{subpart}</span>;
-          })}
-        </span>
-      );
-    }
-
-    return <span key={index}>{part}</span>;
-  });
-}
 
 function downloadResultAsPdf(title: string, content: string) {
   const iframe = document.createElement("iframe");
@@ -895,7 +753,7 @@ export function ResearchCenter({
                     >
                       <Download className="w-5 h-5" /> 
                     </button>
-                    {renderResultMarkdown(
+                    {renderMarkdownContent(
                       messages
                         .filter(
                           (m) => m.role === "agent" || m.role === "assistant",

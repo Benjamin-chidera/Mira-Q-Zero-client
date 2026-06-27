@@ -2,6 +2,9 @@ import { useState } from "react";
 import { AlertCircle, Info, ChevronDown, ChevronUp, Send, Loader2, Sparkles } from "lucide-react";
 import type { AllergyRecord, MedicationRecord } from "@/store/medTech/mira.store";
 import { API_BASE_URL } from "@/config/api";
+import { renderMarkdownContent } from "@/utils/markdownRenderer";
+import { useAIResearcherStore } from "@/store/aiResearcher.store";
+import { useEffect } from "react";
 
 interface SummaryTabProps {
   allergies: AllergyRecord[];
@@ -24,35 +27,56 @@ export function SummaryTab({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const socket = useAIResearcherStore((state) => state.socket);
+  const initializeSocket = useAIResearcherStore((state) => state.initializeSocket);
+
+  useEffect(() => {
+    initializeSocket();
+  }, [initializeSocket]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleResponse = (data: { patient_id: number | string; answer: string }) => {
+      if (data.patient_id == patientId) {
+        setAnswer(data.answer);
+        setIsLoading(false);
+      }
+    };
+
+    const handleError = (data: { patient_id: number | string; error: string }) => {
+      if (data.patient_id == patientId) {
+        setError(data.error);
+        setIsLoading(false);
+      }
+    };
+
+    socket.on("mira:ask_patient_question_response", handleResponse);
+    socket.on("mira:ask_patient_question_error", handleError);
+
+    return () => {
+      socket.off("mira:ask_patient_question_response", handleResponse);
+      socket.off("mira:ask_patient_question_error", handleError);
+    };
+  }, [socket, patientId]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!question.trim()) return;
+
+    if (!socket) {
+      setError("Socket connection is not available. Try refreshing.");
+      return;
+    }
 
     setIsLoading(true);
     setError(null);
     setAnswer(null);
 
-    try {
-      const response = await fetch(`${API_BASE_URL}/medTech/patients/${patientId}/ask-mira`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ question }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to get answer from Mira");
-      }
-
-      const data = await response.json();
-      setAnswer(data.answer);
-    } catch (err: any) {
-      console.error(err);
-      setError(err.message || "An unexpected error occurred.");
-    } finally {
-      setIsLoading(false);
-    }
+    socket.emit("mira:ask_patient_question", {
+      patient_id: patientId,
+      question: question
+    });
   };
 
   return (
@@ -108,7 +132,7 @@ export function SummaryTab({
                 <div className="text-[0.625rem] font-bold text-[#005EB8] uppercase tracking-wider mb-1.5 flex items-center gap-1">
                   <span>Mira's Response:</span>
                 </div>
-                <div className="whitespace-pre-line font-medium text-gray-700">{answer}</div>
+                <div className="text-gray-700">{renderMarkdownContent(answer)}</div>
               </div>
             )}
           </div>
