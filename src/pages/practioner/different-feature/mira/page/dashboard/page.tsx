@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Outlet, useOutletContext, useLocation, useNavigate } from 'react-router-dom';
 import { OnboardingModal } from "@/components/pageComponents/connect/OnboardingModal";
 
 import { PatientList } from './components/PatientList';
@@ -10,7 +11,24 @@ import { CaseHistory } from './components/CaseHistory';
 import { DetailDrawer } from './components/detail-drawer/DetailDrawer';
 import { IntelligenceCallDialog } from './IntelligenceCallDialog';
 
-export default function MedTechDashboard() {
+export interface DashboardContextType {
+  setSelectedPatient: (patient: any) => void;
+  setSelectedResearchItem: (item: any) => void;
+  selectedResearchItem: any;
+  setShowDetail: (show: boolean) => void;
+  isCallDialogOpen: boolean;
+  setIsCallDialogOpen: (open: boolean) => void;
+  setCallConfig: (config: any) => void;
+  caseMode: 'patient' | 'research';
+  setCaseMode: (mode: 'patient' | 'research') => void;
+  caseFilter: 'all' | 'success' | 'failure' | 'abandoned' | 'deleted';
+  setCaseFilter: (filter: any) => void;
+}
+
+export default function MedTechDashboardLayout() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
   // Onboarding Modal State
   const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
@@ -21,8 +39,25 @@ export default function MedTechDashboard() {
     }
   }, []);
 
-  // Global View State
-  const [activeView, setActiveView] = useState<'patients' | 'agent' | 'research' | 'cases'>('patients');
+  // Global View State resolved from route
+  const getActiveView = () => {
+    const path = location.pathname;
+    if (path.endsWith("/agent")) return "agent";
+    if (path.endsWith("/research")) return "research";
+    if (path.endsWith("/cases")) return "cases";
+    return "patients";
+  };
+
+  const activeView = getActiveView();
+
+  const setActiveView = (view: 'patients' | 'agent' | 'research' | 'cases') => {
+    if (view === "patients") {
+      navigate("/mira/dashboard");
+    } else {
+      navigate(`/mira/dashboard/${view}`);
+    }
+  };
+
   const [showDetail, setShowDetail] = useState(true);
   
   // Dialog State
@@ -76,37 +111,20 @@ export default function MedTechDashboard() {
          {/* Main Content Area */}
          <main className="flex-1 flex p-6 gap-6 overflow-hidden  w-full mx-auto relative">
         
-            {/* View Switching */}
-            {activeView === 'agent' && (
-               <AIResearcher isCallDialogOpen={isCallDialogOpen} setIsCallDialogOpen={setIsCallDialogOpen} />
-            )}
-
-            {activeView === 'research' && (
-               <ResearchCenter 
-                 setSelectedResearchItem={setSelectedResearchItem} 
-                 setShowDetail={setShowDetail}
-                 selectedResearchItem={selectedResearchItem}
-                 isCallDialogOpen={isCallDialogOpen}
-                 setIsCallDialogOpen={setIsCallDialogOpen}
-                 setCallConfig={setCallConfig}
-               />
-            )}
-
-            {activeView === 'cases' && (
-               <CaseHistory 
-                 caseMode={caseMode}
-                 setCaseMode={setCaseMode}
-                 caseFilter={caseFilter}
-                 setCaseFilter={setCaseFilter}
-               />
-            )}
-
-            {activeView === 'patients' && (
-               <PatientList
-                 setSelectedPatient={setSelectedPatient} 
-                 setShowDetail={setShowDetail} 
-               />
-            )}
+                    {/* View Switching Outlet */}
+             <Outlet context={{
+               setSelectedPatient,
+               setSelectedResearchItem,
+               selectedResearchItem,
+               setShowDetail,
+               isCallDialogOpen,
+               setIsCallDialogOpen,
+               setCallConfig,
+               caseMode,
+               setCaseMode,
+               caseFilter,
+               setCaseFilter
+             } satisfies DashboardContextType} />
 
             {/* Right Drawer Panel (Details) */}
             <DetailDrawer 
@@ -156,5 +174,49 @@ export default function MedTechDashboard() {
         ]}
       />
     </div>
+  );
+}
+
+// Route Wrappers to retrieve shared states from layout context
+export function PatientListRoute() {
+  const { setSelectedPatient, setShowDetail } = useOutletContext<DashboardContextType>();
+  return <PatientList setSelectedPatient={setSelectedPatient} setShowDetail={setShowDetail} />;
+}
+
+export function AIResearcherRoute() {
+  const { isCallDialogOpen, setIsCallDialogOpen } = useOutletContext<DashboardContextType>();
+  return <AIResearcher isCallDialogOpen={isCallDialogOpen} setIsCallDialogOpen={setIsCallDialogOpen} />;
+}
+
+export function ResearchCenterRoute() {
+  const {
+    setSelectedResearchItem,
+    setShowDetail,
+    selectedResearchItem,
+    isCallDialogOpen,
+    setIsCallDialogOpen,
+    setCallConfig
+  } = useOutletContext<DashboardContextType>();
+  return (
+    <ResearchCenter
+      setSelectedResearchItem={setSelectedResearchItem}
+      setShowDetail={setShowDetail}
+      selectedResearchItem={selectedResearchItem}
+      isCallDialogOpen={isCallDialogOpen}
+      setIsCallDialogOpen={setIsCallDialogOpen}
+      setCallConfig={setCallConfig}
+    />
+  );
+}
+
+export function CaseHistoryRoute() {
+  const { caseMode, setCaseMode, caseFilter, setCaseFilter } = useOutletContext<DashboardContextType>();
+  return (
+    <CaseHistory
+      caseMode={caseMode}
+      setCaseMode={setCaseMode}
+      caseFilter={caseFilter}
+      setCaseFilter={setCaseFilter}
+    />
   );
 }

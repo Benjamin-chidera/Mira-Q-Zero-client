@@ -2,7 +2,12 @@ import "./App.css";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import FindAndConnect from "./pages/user/find_and_connect/page";
 import { PractitionerConsultationPage } from "./pages/practioner/Consultation/page";
-import MedTechDashboard from "./pages/practioner/different-feature/mira/page/dashboard/page";
+import MedTechDashboardLayout, {
+  PatientListRoute,
+  AIResearcherRoute,
+  ResearchCenterRoute,
+  CaseHistoryRoute
+} from "./pages/practioner/different-feature/mira/page/dashboard/page";
 import LoginPage from "./pages/auth/LoginPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import FeatureSwitch from "./components/FeatureSwitch/Page-feature-Switch";
@@ -29,10 +34,15 @@ function App() {
             path="/mira/dashboard"
             element={
               <ProtectedRoute>
-                <MedTechDashboard />
+                <MedTechDashboardLayout />
               </ProtectedRoute>
             }
-          />
+          >
+            <Route index element={<PatientListRoute />} />
+            <Route path="agent" element={<AIResearcherRoute />} />
+            <Route path="research" element={<ResearchCenterRoute />} />
+            <Route path="cases" element={<CaseHistoryRoute />} />
+          </Route>
           
           {/* Fallback 404 */}
           <Route path="*" element={<NotFoundPage />} />
