@@ -59,6 +59,7 @@ const ConnectMap = () => {
   return (
     <div className="flex-1 relative">
       <GoogleMap
+        id="gp-connect-map"
         defaultCenter={center}
         defaultZoom={DEFAULT_ZOOM}
         mapId="gp-connect-map"
