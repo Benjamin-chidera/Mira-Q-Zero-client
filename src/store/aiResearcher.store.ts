@@ -128,7 +128,7 @@ export const useAIResearcherStore = create<AIResearcherStore>((set, get) => ({
   isVoiceProcessing: false,
 
   initializeSocket: () => {
-    let currentSocket = get().socket;
+    const currentSocket = get().socket;
     if (currentSocket) return;
 
     const newSocket = io(API_BASE_URL);

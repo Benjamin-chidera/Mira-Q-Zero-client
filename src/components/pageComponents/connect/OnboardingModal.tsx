@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Play, Clipboard, Check, X, Sparkles, AlertCircle } from "lucide-react";
 
 interface OnboardingModalProps {
@@ -30,6 +30,13 @@ export function OnboardingModal({
   const [copied, setCopied] = useState(false);
   const [isPlayingDemo, setIsPlayingDemo] = useState(false);
 
+  const handleDismiss = useCallback(() => {
+    if (dontShowAgain) {
+      localStorage.setItem(localStorageKey, "true");
+    }
+    onClose();
+  }, [dontShowAgain, localStorageKey, onClose]);
+
   // Auto-close on escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -39,16 +46,9 @@ export function OnboardingModal({
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen, dontShowAgain]);
+  }, [isOpen, handleDismiss]);
 
   if (!isOpen) return null;
-
-  const handleDismiss = () => {
-    if (dontShowAgain) {
-      localStorage.setItem(localStorageKey, "true");
-    }
-    onClose();
-  };
 
   const handleCopy = () => {
     if (!credentials) return;
