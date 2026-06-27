@@ -92,7 +92,7 @@ axios.interceptors.response.use(
 
     if (is401 && !isLoginEndpoint) {
       useAuthStore.getState().logout();
-      window.location.replace("/login");
+      window.location.replace("/mira/login");
     }
 
     return Promise.reject(error);

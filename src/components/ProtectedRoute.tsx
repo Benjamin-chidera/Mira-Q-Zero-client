@@ -12,7 +12,7 @@ const ProtectedRoute = ({ children }: Props) => {
   
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/mira/login" replace />;
   }
 
   return <>{children}</>;

@@ -30,7 +30,7 @@ describe("FeatureSwitch Component", () => {
 
   it("navigates to HealthConnect home path on clicking HealthConnect button", () => {
     render(
-      <MemoryRouter initialEntries={["/practioner/medTech/dashboard"]}>
+      <MemoryRouter initialEntries={["/mira/dashboard"]}>
         <FeatureSwitch />
       </MemoryRouter>
     );
@@ -51,6 +51,6 @@ describe("FeatureSwitch Component", () => {
     const medTechButton = screen.getByText("MedTech AI");
     fireEvent.click(medTechButton);
 
-    expect(mockNavigate).toHaveBeenCalledWith("/practioner/medTech/dashboard");
+    expect(mockNavigate).toHaveBeenCalledWith("/mira/dashboard");
   });
 });

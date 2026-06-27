@@ -82,7 +82,7 @@ const LoginPage = () => {
 
     const success = await login(email, password);
     if (success) {
-      navigate("/practioner/medTech/dashboard", { replace: true });
+      navigate("/mira/dashboard", { replace: true });
     }
   };
 
@@ -101,7 +101,7 @@ const LoginPage = () => {
 
     const success = await setPassword(email, password);
     if (success) {
-      navigate("/practioner/medTech/dashboard", { replace: true });
+      navigate("/mira/dashboard", { replace: true });
     }
   };
 
@@ -124,7 +124,7 @@ const LoginPage = () => {
     try {
       const success = await login(testEmail, testPass);
       if (success) {
-        navigate("/practioner/medTech/dashboard", { replace: true });
+        navigate("/mira/dashboard", { replace: true });
       }
     } catch (err: any) {
       setError("Failed to auto-login. Please try manual login.");

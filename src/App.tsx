@@ -6,6 +6,7 @@ import MedTechDashboard from "./pages/practioner/different-feature/mira/page/das
 import LoginPage from "./pages/auth/LoginPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import FeatureSwitch from "./components/FeatureSwitch/Page-feature-Switch";
+import NotFoundPage from "./pages/NotFoundPage";
 
 function App() {
   return (
@@ -15,7 +16,7 @@ function App() {
         <Routes>
           {/* Public */}
           <Route path="/" element={<FindAndConnect />} />
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/mira/login" element={<LoginPage />} />
 
           {/* Practitioner Routes */}
           <Route
@@ -25,13 +26,16 @@ function App() {
 
           {/* MedTech Routes — protected */}
           <Route
-            path="/practioner/medTech/dashboard"
+            path="/mira/dashboard"
             element={
               <ProtectedRoute>
                 <MedTechDashboard />
               </ProtectedRoute>
             }
           />
+          
+          {/* Fallback 404 */}
+          <Route path="*" element={<NotFoundPage />} />
         </Routes>
       </BrowserRouter>
     </main>

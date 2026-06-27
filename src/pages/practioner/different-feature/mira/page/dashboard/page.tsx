@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { OnboardingModal } from "@/components/pageComponents/connect/OnboardingModal";
 
 import { PatientList } from './components/PatientList';
 import { DashboardSidebar } from './components/DashboardSidebar';
@@ -10,6 +11,16 @@ import { DetailDrawer } from './components/detail-drawer/DetailDrawer';
 import { IntelligenceCallDialog } from './IntelligenceCallDialog';
 
 export default function MedTechDashboard() {
+  // Onboarding Modal State
+  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+
+  useEffect(() => {
+    const isDismissed = localStorage.getItem("mira_onboarding_dismissed");
+    if (!isDismissed) {
+      setIsOnboardingOpen(true);
+    }
+  }, []);
+
   // Global View State
   const [activeView, setActiveView] = useState<'patients' | 'agent' | 'research' | 'cases'>('patients');
   const [showDetail, setShowDetail] = useState(true);
@@ -122,6 +133,28 @@ export default function MedTechDashboard() {
          setTransientMessages={callConfig?.setMessages}
       />
 
+      {/* Mira Onboarding Walkthrough Guide */}
+      <OnboardingModal
+        isOpen={isOnboardingOpen}
+        onClose={() => setIsOnboardingOpen(false)}
+        title="MIRA Clinical Portal Onboarding 🧠"
+        subtitle="Manage GP availability, view patient profiles, and query medical intelligence."
+        localStorageKey="mira_onboarding_dismissed"
+        steps={[
+          {
+            title: "Select patient Jane Smith",
+            desc: "Click on the patient 'Jane Smith' under the Patient List view to slide open her clinical records panel."
+          },
+          {
+            title: "Test 'Ask Mira' Clinical Queries",
+            desc: "Ask Mira specific questions about Jane's health context (e.g. allergies, medications) to see real-time, parsed answers."
+          },
+          {
+            title: "Manage background research briefs",
+            desc: "Use the Research Center in the sidebar to schedule medical query tasks using celery background worker systems."
+          }
+        ]}
+      />
     </div>
   );
 }
