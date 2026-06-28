@@ -72,6 +72,7 @@ const FindAndConnect = () => {
         <OnboardingModal
           isOpen={isOnboardingOpen}
           onClose={() => setIsOnboardingOpen(false)}
+          videoUrl="https://vimeo.com/1205272257?share=copy&fl=sv&fe=ci"
           title="NHS GP-Connect Booking Portal 🏥"
           subtitle="Direct appointment slot scheduler and real-time Clinical AI Voice Agent."
           localStorageKey="gp_connect_onboarding_dismissed"
@@ -79,7 +80,7 @@ const FindAndConnect = () => {
           onActionClick={() => navigate("/mira/login")}
           steps={[
             {
-              title: "Enter Sandbox Postcode",
+              title: "Enter your Postcode",
               desc: "Enter the test postcode 'DD3' (Dundee area) in the search sidebar to retrieve real sandbox GP surgeries."
             },
             {

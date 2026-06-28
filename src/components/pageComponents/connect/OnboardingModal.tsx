@@ -190,12 +190,21 @@ export function OnboardingModal({
           <div className="absolute inset-0 bg-radial-gradient from-blue-500/10 to-transparent pointer-events-none" />
 
           {videoUrl && !isPlayingDemo ? (
-            <video
-              src={videoUrl}
-              className="w-full h-full object-cover"
-              controls
-              autoPlay={false}
-            />
+            videoUrl.includes('vimeo.com') ? (
+              <iframe
+                src={videoUrl.includes('player.vimeo.com') ? videoUrl : videoUrl.replace('vimeo.com/', 'player.vimeo.com/video/').split('?')[0] + "?autoplay=1&muted=1&loop=1"}
+                className="w-full h-full border-0"
+                allow="autoplay; fullscreen; picture-in-picture; clipboard-write; encrypted-media"
+                title="Walkthrough Video"
+              />
+            ) : (
+              <video
+                src={videoUrl}
+                className="w-full h-full object-cover"
+                controls
+                autoPlay={true}
+              />
+            )
           ) : isPlayingDemo ? (
             <div className="absolute inset-0 flex flex-col items-center justify-center p-6 bg-slate-950 text-center animate-fade-in">
               <div className="w-12 h-12 rounded-full border-2 border-blue-500 border-t-transparent animate-spin mb-4" />

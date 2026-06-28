@@ -148,6 +148,7 @@ export default function MedTechDashboardLayout() {
         onClose={() => setIsOnboardingOpen(false)}
         title="MIRA Clinical Portal Onboarding 🧠"
         subtitle="Manage GP availability, view patient profiles, and query medical intelligence."
+        videoUrl='https://vimeo.com/1205280324?share=copy&fl=sv&fe=ci'
         localStorageKey="mira_onboarding_dismissed"
         steps={[
           {
