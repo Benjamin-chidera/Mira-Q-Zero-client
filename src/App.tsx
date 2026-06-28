@@ -10,14 +10,14 @@ import MedTechDashboardLayout, {
 } from "./pages/practioner/different-feature/mira/page/dashboard/page";
 import LoginPage from "./pages/auth/LoginPage";
 import ProtectedRoute from "./components/ProtectedRoute";
-import FeatureSwitch from "./components/FeatureSwitch/Page-feature-Switch";
+// import FeatureSwitch from "./components/FeatureSwitch/Page-feature-Switch";
 import NotFoundPage from "./pages/NotFoundPage";
 
 function App() {
   return (
     <main>
       <BrowserRouter>
-        <FeatureSwitch />
+        {/* <FeatureSwitch /> */}
         <Routes>
           {/* Public */}
           <Route path="/" element={<FindAndConnect />} />
