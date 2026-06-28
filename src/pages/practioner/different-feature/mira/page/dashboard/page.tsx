@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Outlet, useOutletContext, useLocation, useNavigate } from 'react-router-dom';
-import { OnboardingModal } from "@/components/pageComponents/connect/OnboardingModal";
+// import { OnboardingModal } from "@/components/pageComponents/connect/OnboardingModal";
 
 import { PatientList } from './components/PatientList';
 import { DashboardSidebar } from './components/DashboardSidebar';
@@ -30,14 +30,14 @@ export default function MedTechDashboardLayout() {
   const navigate = useNavigate();
 
   // Onboarding Modal State
-  const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
+  // const [isOnboardingOpen, setIsOnboardingOpen] = useState(false);
 
-  useEffect(() => {
-    const isDismissed = localStorage.getItem("mira_onboarding_dismissed");
-    if (!isDismissed) {
-      setIsOnboardingOpen(true);
-    }
-  }, []);
+  // useEffect(() => {
+  //   const isDismissed = localStorage.getItem("mira_onboarding_dismissed");
+  //   if (!isDismissed) {
+  //     setIsOnboardingOpen(true);
+  //   }
+  // }, []);
 
   // Global View State resolved from route
   const getActiveView = () => {
@@ -143,7 +143,7 @@ export default function MedTechDashboardLayout() {
       />
 
       {/* Mira Onboarding Walkthrough Guide */}
-      <OnboardingModal
+      {/* <OnboardingModal
         isOpen={isOnboardingOpen}
         onClose={() => setIsOnboardingOpen(false)}
         title="MIRA Clinical Portal Onboarding 🧠"
@@ -163,7 +163,7 @@ export default function MedTechDashboardLayout() {
             desc: "Use the Research Center in the sidebar to schedule medical query tasks using celery background worker systems."
           }
         ]}
-      />
+      /> */}
     </div>
   );
 }
