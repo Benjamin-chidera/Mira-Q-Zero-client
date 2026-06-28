@@ -77,10 +77,6 @@ export default function MedTechDashboardLayout() {
   const [caseMode, setCaseMode] = useState<'patient' | 'research'>('patient');
   const [caseFilter, setCaseFilter] = useState<'all' | 'success' | 'failure' | 'abandoned' | 'deleted'>('all');
   
-  // Notification State
-  const [showNotifications, setShowNotifications] = useState(false);
-  const [selectedNotification, setSelectedNotification] = useState<any>(null);
-
   // When call dialog is closed, reset callConfig
   const handleCloseCall = () => {
     setIsCallDialogOpen(false);
@@ -101,12 +97,7 @@ export default function MedTechDashboardLayout() {
       <div className="flex-1 flex flex-col h-screen overflow-hidden bg-[#F8FAFC]">
         
          {/* Top Header with Notifications */}
-         <DashboardHeader
-           showNotifications={showNotifications}
-           setShowNotifications={setShowNotifications}
-           selectedNotification={selectedNotification}
-           setSelectedNotification={setSelectedNotification}
-         />
+         <DashboardHeader />
 
          {/* Main Content Area */}
          <main className="flex-1 flex p-6 gap-6 overflow-hidden  w-full mx-auto relative">
