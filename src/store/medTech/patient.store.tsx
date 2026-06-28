@@ -36,7 +36,7 @@ export const usePatientStore = create<PatientStore>((set) => ({
   fetchPatients: async (odsCode: string, doctorId?: number | string) => {
     set({ isLoading: true, error: null });
     try {
-      let url = `${API_BASE_URL}/medTech/patients?ods_code=${odsCode}`;
+      let url = `${API_BASE_URL}/medTech/patients/?ods_code=${odsCode}`;
       if (doctorId !== undefined && doctorId !== null) {
         url += `&doctor_id=${doctorId}`;
       }
