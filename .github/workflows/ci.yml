@@ -10,10 +10,6 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: client
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -28,7 +24,7 @@ jobs:
         with:
           node-version: 24
           cache: 'pnpm'
-          cache-dependency-path: client/pnpm-lock.yaml
+          cache-dependency-path: pnpm-lock.yaml
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
