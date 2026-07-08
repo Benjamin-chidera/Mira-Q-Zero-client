@@ -242,7 +242,7 @@ export const BookingDetailsFilling = () => {
                 </div>
                 <div className="flex flex-col gap-1.5">
                   <Label className="text-sm font-medium text-gray-700">
-                    Your Date of Birth
+                    Your Email Address
                   </Label>
                   <Input
                     id="my-email"

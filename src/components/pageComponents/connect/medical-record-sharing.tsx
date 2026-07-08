@@ -59,7 +59,7 @@ export const MedicalRecordSharingModal = () => {
                   <div>
                     <p className="text-sm leading-relaxed">
                       To provide safe care, {doctorName} needs to view your GP
-                      record via GP Connect.
+                      record via Q-Zero.
                     </p>
                   </div>
                 </div>

@@ -60,7 +60,7 @@ export function OnboardingModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-fade-in">
+    <div className="fixed inset-0 z-999 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-fade-in">
       <div className="bg-white/95 backdrop-blur-md border border-slate-100 rounded-3xl shadow-2xl max-w-4xl w-full overflow-hidden flex flex-col md:flex-row max-h-[90vh] animate-scale-up">
         {/* Left Side: Walkthrough Steps & Info */}
         <div className="flex-1 p-6 md:p-8 overflow-y-auto flex flex-col justify-between">
@@ -68,10 +68,10 @@ export function OnboardingModal({
             <div className="flex justify-between items-start gap-4 mb-4">
               <div>
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-[0.6875rem] font-bold text-[#005EB8] uppercase tracking-wider mb-2">
-                  <Sparkles className="w-3.5 h-3.5" />
+                  {/* <Sparkles className="w-3.5 h-3.5" /> */}
                   Portfolio Showcase
                 </span>
-                <h2 className="text-2xl font-bold text-slate-900 leading-tight">
+                <h2 className="text-[1.30rem] font-bold text-slate-900 leading-tight">
                   {title}
                 </h2>
                 <p className="text-sm text-slate-500 mt-1">{subtitle}</p>
