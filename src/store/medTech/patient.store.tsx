@@ -23,6 +23,7 @@ interface PatientStore {
   fetchPatients: (odsCode: string, doctorId?: number | string) => Promise<void>;
   hydratePatient: (nhsNumber: string) => Promise<void>;
   updatePatientDetails: (patientId: number | string, details: Partial<Patient>) => Promise<void>;
+  updatePatientOutcome: (patientId: number | string, status: string, reason: string) => Promise<void>;
 }
 
 export const usePatientStore = create<PatientStore>((set) => ({
@@ -108,6 +109,39 @@ export const usePatientStore = create<PatientStore>((set) => ({
       set((state) => ({
         patients: state.patients.map((p) =>
           p.id === patientId ? { ...p, ...data.patient } : p
+        ),
+        isLoading: false
+      }));
+    } catch (err: any) {
+      set({ error: err.message || 'An error occurred', isLoading: false });
+      throw err;
+    }
+  },
+
+  updatePatientOutcome: async (patientId: number | string, status: string, reason: string) => {
+    set({ isLoading: true, error: null });
+    try {
+      const response = await fetch(`${API_BASE_URL}/medTech/patients/${patientId}/outcome`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ status, outcome_reason: reason })
+      });
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => null);
+        throw new Error(errData?.detail || 'Failed to update patient outcome');
+      }
+
+      const data = await response.json();
+      set((state) => ({
+        patients: state.patients.map((p) =>
+          p.id === patientId ? { 
+            ...p, 
+            status: data.patient.status, 
+            reason: data.patient.outcome_reason 
+          } : p
         ),
         isLoading: false
       }));

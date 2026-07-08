@@ -1,7 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import {
   MoreVertical,
-  Trash2,
   CheckCircle2,
   XCircle,
   Archive,
@@ -10,9 +9,11 @@ import {
   ClipboardList,
   Pill,
   ShieldAlert,
-  Edit
+  Edit,
+  Loader2
 } from 'lucide-react';
 import type { Patient } from '@/store/medTech/patient.store';
+import { usePatientStore } from '@/store/medTech/patient.store';
 import {
   AlertDialog,
   AlertDialogContent,
@@ -23,7 +24,7 @@ import {
 import { useClinicalFormStore } from '@/store/medTech/clinicalForm.store';
 import { useMiraStore } from '@/store/medTech/mira.store';
 import useAuthStore from '@/store/auth.store';
-import { Loader2 } from 'lucide-react';
+
 
 // Import split clinical components
 import { PatientDocuments } from '@/components/pageComponents/mira/patient_documents';
@@ -47,6 +48,15 @@ export function PatientCardMenu({ patient }: PatientCardMenuProps) {
 
   // Controls opening/closing the full-page records editor
   const [isUpdateOpen, setIsUpdateOpen] = useState(false);
+
+  // Outcome status states
+  const [isOutcomeOpen, setIsOutcomeOpen] = useState(false);
+  const [selectedOutcome, setSelectedOutcome] = useState<'complete' | 'failure' | 'abandoned' | null>(null);
+  const [outcomeReason, setOutcomeReason] = useState('');
+  const [isSavingOutcome, setIsSavingOutcome] = useState(false);
+  const [outcomeError, setOutcomeError] = useState<string | null>(null);
+
+  const { updatePatientOutcome } = usePatientStore();
 
   const [isSavingAll, setIsSavingAll] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -203,9 +213,43 @@ export function PatientCardMenu({ patient }: PatientCardMenuProps) {
     setIsOpen(!isOpen);
   }
 
+  async function handleSaveOutcome() {
+    if (!selectedOutcome) return;
+    if (!outcomeReason.trim()) {
+      setOutcomeError("Please enter a reason.");
+      return;
+    }
+    
+    setIsSavingOutcome(true);
+    setOutcomeError(null);
+    try {
+      const statusMap = {
+        complete: 'Complete',
+        failure: 'Failure',
+        abandoned: 'Abandoned',
+      };
+      const statusStr = statusMap[selectedOutcome];
+      
+      await updatePatientOutcome(patient.id, statusStr, outcomeReason.trim());
+      setIsOutcomeOpen(false);
+      setOutcomeReason('');
+      setSelectedOutcome(null);
+      setToastMessage(`Patient marked as ${statusStr} successfully.`);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 4000);
+    } catch (err: any) {
+      setOutcomeError(err.message || "Failed to update status.");
+    } finally {
+      setIsSavingOutcome(false);
+    }
+  }
+
   function handleAction(action: string) {
     if (action === 'update') {
       setIsUpdateOpen(true);
+    } else if (action === 'complete' || action === 'failure' || action === 'abandoned') {
+      setSelectedOutcome(action);
+      setIsOutcomeOpen(true);
     } else {
       console.log(`Action: ${action} for patient #${patient.id} - ${patient.name}`);
     }
@@ -227,12 +271,6 @@ export function PatientCardMenu({ patient }: PatientCardMenuProps) {
       icon: Edit,
       action: 'update',
       className: 'text-gray-700 hover:bg-gray-50',
-    },
-    {
-      label: 'Delete Patient',
-      icon: Trash2,
-      action: 'delete',
-      className: 'text-red-600 hover:bg-red-50',
     },
     {
       label: 'Mark as Complete',
@@ -271,6 +309,10 @@ export function PatientCardMenu({ patient }: PatientCardMenuProps) {
     if (activeTab === 'allergy') {
       return <AllergyReport patient={patient} />;
     }
+    return null;
+  }
+
+  if (['Complete', 'Failure', 'Abandoned'].includes(patient.status || '')) {
     return null;
   }
 
@@ -428,6 +470,57 @@ export function PatientCardMenu({ patient }: PatientCardMenuProps) {
           </div>
         </div>
       )}
+
+      {/* Outcome Reason Modal */}
+      <AlertDialog open={isOutcomeOpen} onOpenChange={setIsOutcomeOpen}>
+        <AlertDialogContent className="max-w-md p-6 rounded-2xl bg-white border-0 shadow-2xl">
+          <div className="flex flex-col gap-4">
+            <div>
+              <AlertDialogTitle className="text-base font-bold text-gray-900">
+                Mark Case as {selectedOutcome ? selectedOutcome.charAt(0).toUpperCase() + selectedOutcome.slice(1) : ''}
+              </AlertDialogTitle>
+              <AlertDialogDescription className="text-xs text-gray-500 mt-1 font-medium">
+                Please provide a brief reason for completing, failing, or abandoning this patient's case.
+              </AlertDialogDescription>
+            </div>
+
+            {outcomeError && (
+              <p className="text-xs font-semibold text-red-500">{outcomeError}</p>
+            )}
+
+            <textarea
+              value={outcomeReason}
+              onChange={(e) => setOutcomeReason(e.target.value)}
+              placeholder="Enter details..."
+              className="w-full h-24 p-3 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-1 focus:ring-[#005EB8] resize-none"
+            />
+
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsOutcomeOpen(false);
+                  setOutcomeReason('');
+                  setSelectedOutcome(null);
+                  setOutcomeError(null);
+                }}
+                className="px-4 py-2 border border-gray-200 hover:bg-gray-50 text-gray-700 text-xs font-bold rounded-xl transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={isSavingOutcome}
+                onClick={handleSaveOutcome}
+                className="px-4 py-2 bg-[#005EB8] hover:bg-[#004A99] disabled:opacity-50 text-white text-xs font-bold rounded-xl shadow-sm transition-colors flex items-center gap-1.5"
+              >
+                {isSavingOutcome && <Loader2 className="w-3 h-3 animate-spin" />}
+                Confirm
+              </button>
+            </div>
+          </div>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

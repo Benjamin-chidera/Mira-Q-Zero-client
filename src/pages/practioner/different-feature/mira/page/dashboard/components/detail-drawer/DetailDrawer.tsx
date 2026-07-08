@@ -97,9 +97,8 @@ export function DetailDrawer({
   ]);
 
   if (!showDetail) return null;
-
   return (
-    <div className="w-112.5 bg-white rounded-2xl shadow-[0_0.5rem_1.875rem_rgb(0,0,0,0.08)] border border-gray-100 flex flex-col shrink-0 overflow-hidden relative">
+    <div className="w-full md:w-[320px] lg:w-96 xl:w-112.5  bg-white rounded-2xl shadow-[0_0.5rem_1.875rem_rgb(0,0,0,0.08)] border border-gray-100 flex flex-col overflow-hidden absolute right-6 top-6 bottom-6 z-50">
       <div className="p-6 flex items-start justify-between border-b border-gray-50/50 shrink-0 bg-white z-20">
         <div>
           <h3 className="font-bold text-gray-900 text-[0.9375rem]">
@@ -168,11 +167,11 @@ export function DetailDrawer({
           <>
             {/* Header Box */}
             <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
-              <div className="flex justify-between items-start mb-3">
-                <h4 className="font-bold text-gray-900 text-[1.125rem] leading-tight">
+              <div className="flex justify-between items-start mb-2 xl:mb-3 gap-2">
+                <h4 className="font-bold text-gray-900 text-[1rem] xl:text-[1.125rem] leading-tight">
                   {selectedPatient.name}
                 </h4>
-                <span className="bg-blue-50 text-[#005EB8] text-[0.625rem] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">
+                <span className="bg-blue-50 text-[#005EB8] text-[0.5625rem] xl:text-[0.625rem] font-bold px-2 py-0.5 xl:px-2.5 xl:py-1 rounded-full uppercase tracking-wider shrink-0 whitespace-nowrap">
                   Tier: {selectedPatient.status}
                 </span>
               </div>
@@ -292,9 +291,9 @@ export function DetailDrawer({
 
       {/* Persistent Dock - AI Medical Summarizer */}
       {activeView === "patients" && selectedPatient && activePatientData && (
-        <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-5 shadow-[0_-0.625rem_1.875rem_rgba(0,0,0,0.08)] z-30">
-          <div className="flex justify-between items-center mb-3">
-            <h4 className="text-[0.6875rem] font-bold text-[#005EB8] uppercase tracking-wider flex items-center gap-2">
+        <div className="absolute bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 xl:p-5 shadow-[0_-0.625rem_1.875rem_rgba(0,0,0,0.08)] z-30">
+          <div className="flex justify-between items-center mb-2 xl:mb-3">
+            <h4 className="text-[0.625rem] xl:text-[0.6875rem] font-bold text-[#005EB8] uppercase tracking-wider flex items-center gap-1.5 whitespace-nowrap shrink-0">
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#005EB8] opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-[#005EB8]"></span>
@@ -314,9 +313,9 @@ export function DetailDrawer({
                 }
                 setIsCallDialogOpen(true);
               }}
-              className="bg-[#005EB8] hover:bg-[#004A99] text-white px-3.5 py-1.5 rounded-full text-[0.6875rem] font-bold shadow-sm transition-all hover:scale-105 flex items-center gap-1.5"
+              className="bg-[#005EB8] hover:bg-[#004A99] text-white px-2 py-1.5 xl:px-3.5 xl:py-1.5 rounded-full text-[0.625rem] xl:text-[0.6875rem] font-bold shadow-sm transition-all hover:scale-105 flex items-center gap-1 xl:gap-1.5 whitespace-nowrap shrink-0"
             >
-              <Mic className="w-3.5 h-3.5" />
+              <Mic className="w-3 h-3 xl:w-3.5 xl:h-3.5" />
               Speak with Mira
             </button>
           </div>
@@ -326,10 +325,10 @@ export function DetailDrawer({
               Generating clinical summary...
             </div>
           ) : aiSummary.length > 0 ? (
-            <div className="max-h-28 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+            <div className="max-h-20 xl:max-h-28 overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
               <ul className="space-y-2">
                 {aiSummary.map((bullet, index) => (
-                  <li key={index} className="text-[0.8125rem] text-gray-700 font-medium leading-relaxed flex items-start gap-2">
+                  <li key={index} className="text-xs xl:text-[0.8125rem] text-gray-700 font-medium leading-relaxed flex items-start gap-1.5">
                     <span className="text-[#005EB8] mt-0.5">•</span>
                     <span>{bullet}</span>
                   </li>

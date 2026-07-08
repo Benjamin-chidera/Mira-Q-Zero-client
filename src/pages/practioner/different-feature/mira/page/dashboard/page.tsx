@@ -58,7 +58,7 @@ export default function MedTechDashboardLayout() {
     }
   };
 
-  const [showDetail, setShowDetail] = useState(true);
+  const [showDetail, setShowDetail] = useState(false);
   
   // Dialog State
   const [isCallDialogOpen, setIsCallDialogOpen] = useState(false);
@@ -84,8 +84,14 @@ export default function MedTechDashboardLayout() {
   };
 
   return (
-    <div className="flex h-screen bg-[#F8FAFC] font-sans overflow-hidden">
-      
+    <>
+      {/* Mobile Overlay */}
+      <div className="md:hidden fixed inset-0 z-9999 bg-white flex items-center justify-center p-6 text-center">
+        <h2 className="text-xl font-bold text-gray-900">Please make use of Mira on a large device.</h2>
+      </div>
+
+      <div className="hidden md:flex h-screen bg-[#F8FAFC] font-sans overflow-hidden">
+        
       {/* Sidebar Navigation */}
       <DashboardSidebar
         activeView={activeView} 
@@ -166,6 +172,7 @@ export default function MedTechDashboardLayout() {
         ]}
       />
     </div>
+    </>
   );
 }
 

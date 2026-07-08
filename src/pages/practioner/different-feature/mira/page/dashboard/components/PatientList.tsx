@@ -35,11 +35,6 @@ export function PatientList({ setSelectedPatient, setShowDetail }: PatientListPr
                 {isLoading ? 'Loading...' : `${patients.length} active`}
              </span>
           </div>
-          {/* <div className="flex gap-2.5">
-             <button className="flex items-center gap-2 border border-gray-200 bg-white px-3.5 py-1.5 text-[0.8125rem] font-bold text-gray-700 rounded shadow-sm hover:bg-gray-50 transition-colors">
-                <Filter className="w-3.5 h-3.5" /> Filter
-             </button>
-          </div> */}
        </div>
 
        {error && (
@@ -53,7 +48,7 @@ export function PatientList({ setSelectedPatient, setShowDetail }: PatientListPr
             Fetching patients from NHS PDS API...
          </div>
        ) : (
-         <div className="grid grid-cols-3 gap-5">
+         <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-5">
             {patients.map(patient => {
                const colors = getStatusColor(patient.status);
                const initials = patient.name.split(' ').map((n: string) => n[0]).join('');

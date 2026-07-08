@@ -40,7 +40,7 @@ export function DashboardSidebar({
   const doctorName = formatDoctorName(user?.name || "");
 
   return (
-    <aside className="w-65 bg-white border-r border-gray-100 flex flex-col shrink-0">
+    <aside className="w-55 bg-white border-r border-gray-100 flex flex-col shrink-0">
       <div className="p-8 flex flex-col items-center border-b border-gray-50/50">
         <div className="w-22 h-22 rounded-2xl overflow-hidden mb-4 shadow-sm border border-gray-100">
           <img
@@ -57,7 +57,7 @@ export function DashboardSidebar({
         </p>
       </div>
 
-      <nav className="flex-1 py-6 flex flex-col gap-1 px-4">
+      <nav className="flex-1 py-6 flex flex-col gap-1 px-2">
         <button
           onClick={() => {
             setActiveView("agent");

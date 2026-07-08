@@ -155,7 +155,7 @@ export function CaseHistory({
       try {
         setIsLoading(true);
         const res = await fetch(
-          `${API_BASE_URL}/mira/case-history?practitioner_id=${user.id}&status=${caseFilter}`,
+          `${API_BASE_URL}/mira/case-history?practitioner_id=${user.id}&status=${caseFilter}&mode=${caseMode}`,
         );
         if (res.ok) {
           const data = await res.json();
@@ -169,14 +169,14 @@ export function CaseHistory({
     };
 
     fetchCaseHistory();
-  }, [user, caseFilter]);
+  }, [user, caseFilter, caseMode]);
 
   // Fetch full details of a specific case history item on click
   const handleCaseClick = async (conversationId: string) => {
     try {
       setIsLoading(true);
       const res = await fetch(
-        `${API_BASE_URL}/mira/case-history/${conversationId}/details`,
+        `${API_BASE_URL}/mira/case-history/${conversationId}/details?mode=${caseMode}`,
       );
       if (res.ok) {
         const data = await res.json();
@@ -239,13 +239,13 @@ export function CaseHistory({
         <div className="flex gap-2">
           <button
             onClick={() => setCaseMode("patient")}
-            className={`px-4 py-2 rounded-lg text-[0.8125rem] font-bold transition-colors ${caseMode === "patient" ? "bg-[#005EB8] text-white shadow-sm" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
+            className={`px-3 py-1.5 xl:px-4 xl:py-2 rounded-lg text-xs xl:text-[0.8125rem] font-bold transition-colors ${caseMode === "patient" ? "bg-[#005EB8] text-white shadow-sm" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
           >
             Patient Cases
           </button>
           <button
             onClick={() => setCaseMode("research")}
-            className={`px-4 py-2 rounded-lg text-[0.8125rem] font-bold transition-colors ${caseMode === "research" ? "bg-[#005EB8] text-white shadow-sm" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
+            className={`px-3 py-1.5 xl:px-4 xl:py-2 rounded-lg text-xs xl:text-[0.8125rem] font-bold transition-colors ${caseMode === "research" ? "bg-[#005EB8] text-white shadow-sm" : "bg-white text-gray-600 border border-gray-200 hover:bg-gray-50"}`}
           >
             Research Cases
           </button>
