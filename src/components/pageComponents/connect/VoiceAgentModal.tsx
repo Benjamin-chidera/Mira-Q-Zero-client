@@ -496,7 +496,7 @@ export function VoiceAgentModal({
         socketRef.current = null;
       }
     };
-  }, [open, gpName, bookingData.patientName]);
+  }, [open, gpName, bookingData.patientName, setPrefetchedGreetingAudio]);
 
   // Handles hardware microphone status changes and updates recognition state
   const handleToggleMute = useCallback(() => {

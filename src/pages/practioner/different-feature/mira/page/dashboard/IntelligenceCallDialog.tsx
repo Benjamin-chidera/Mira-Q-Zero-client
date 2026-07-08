@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, Fragment } from "react";
+import React, { useState, useRef, useEffect, Fragment, useMemo } from "react";
 import type { ReactNode } from "react";
 import {
   Phone,
@@ -221,15 +221,16 @@ export function IntelligenceCallDialog({
   const sendCallDocs = useAIResearcherStore((state) => state.sendCallDocs);
   const initializeSocket = useAIResearcherStore((state) => state.initializeSocket);
   const activeConversation = conversations.find((c) => c.id === activeConversationId);
-  const globalMessages = activeConversation?.messages || [];
-
   // Local state for transient mode
   const [localIsVoiceProcessing, setLocalIsVoiceProcessing] = useState(false);
   const [localStatusMessage, setLocalStatusMessage] = useState("");
 
   const isVoiceProcessing = isTransient ? localIsVoiceProcessing : globalIsVoiceProcessing;
   const statusMessage = isTransient ? localStatusMessage : globalStatusMessage;
-  const messages = isTransient ? (transientMessages || []) : globalMessages;
+  const messages = useMemo(() => {
+    const globalMessages = activeConversation?.messages || [];
+    return isTransient ? (transientMessages || []) : globalMessages;
+  }, [isTransient, transientMessages, activeConversation?.messages]);
   const currentConversationId = isTransient ? transientConversationId : activeConversationId;
 
   const [attachments, setAttachments] = useState<Attachment[]>([]);
@@ -438,6 +439,7 @@ export function IntelligenceCallDialog({
     return () => {
       cleanupCall();
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, user, isTransient]);
 
   // Handle Audio Playback Event from Socket.IO

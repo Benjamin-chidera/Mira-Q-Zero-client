@@ -86,7 +86,15 @@ export function DetailDrawer({
       setActiveTab("summary");
       setPatientCallMessages([]);
     }
-  }, [selectedPatient?.id, fetchNotifications]);
+  }, [
+    selectedPatient?.id,
+    fetchNotifications,
+    fetchAllergies,
+    fetchMedications,
+    fetchClinicalNotes,
+    fetchOperativeNotes,
+    fetchDocuments,
+  ]);
 
   if (!showDetail) return null;
 

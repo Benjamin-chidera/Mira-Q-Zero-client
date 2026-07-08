@@ -337,7 +337,7 @@ export function ResearchCenter({
       socket.off("mira:response", handleResponse);
       socket.off("mira:status", handleStatus);
     };
-  }, [socket, isChatModalOpen, activeConvId]);
+  }, [socket, isChatModalOpen, activeConvId, fetchConversations, user?.id]);
 
   // Handlers for attachments
   const addPendingAttachment = (attachment: any) => {

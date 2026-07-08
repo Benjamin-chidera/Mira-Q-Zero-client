@@ -178,7 +178,7 @@ export function PatientCardMenu({ patient }: PatientCardMenuProps) {
       resetForm();
       setSaveError(null);
     }
-  }, [isUpdateOpen]);
+  }, [isUpdateOpen, resetForm]);
 
   // Close context menu when clicking outside
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useMemo } from "react";
 import { Loader2, Plus, Trash2, X } from "lucide-react";
 import { useAIResearcherStore } from "@/store/aiResearcher.store";
 import useAuthStore from "@/store/auth.store";
@@ -38,7 +38,7 @@ export function AIResearcher({ isCallDialogOpen, setIsCallDialogOpen }: AIResear
   const fetchConversations = useAIResearcherStore((state) => state.fetchConversations);
 
   const activeConversation = conversations.find((c) => c.id === activeConversationId);
-  const messages = activeConversation?.messages || [];
+  const messages = useMemo(() => activeConversation?.messages || [], [activeConversation?.messages]);
 
   // Initialize socket and fetch conversations on mount
   useEffect(() => {
