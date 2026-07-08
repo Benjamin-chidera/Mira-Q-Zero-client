@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { Play, Clipboard, Check, X, Sparkles, AlertCircle } from "lucide-react";
+import { Play, Clipboard, Check, X, AlertCircle } from "lucide-react";
 
 interface OnboardingModalProps {
   isOpen: boolean;
@@ -185,7 +185,7 @@ export function OnboardingModal({
         </div>
 
         {/* Right Side: Video Walkthrough / Interactive Mockup Player */}
-        <div className="w-full md:w-[24rem] bg-slate-950 flex flex-col justify-center items-center relative overflow-hidden border-t md:border-t-0 md:border-l border-slate-900 group shrink-0 min-h-[16rem]">
+        <div className="w-full md:w-[24rem] bg-slate-950 flex flex-col justify-center items-center relative overflow-hidden border-t md:border-t-0 md:border-l border-slate-900 group shrink-0 min-h-64">
           {/* Backdrop dynamic background glowing aura */}
           <div className="absolute inset-0 bg-radial-gradient from-blue-500/10 to-transparent pointer-events-none" />
 
@@ -211,7 +211,7 @@ export function OnboardingModal({
               <p className="text-xs text-blue-400 font-bold tracking-wide uppercase">
                 Loading Walkthrough Video
               </p>
-              <p className="text-[0.6875rem] text-slate-500 mt-2 max-w-[15rem] leading-relaxed">
+              <p className="text-[0.6875rem] text-slate-500 mt-2 max-w-60 leading-relaxed">
                 Connect API is initializing the sandbox stream...
               </p>
               <button
@@ -236,7 +236,7 @@ export function OnboardingModal({
               <h4 className="text-white font-bold mt-6 text-sm tracking-wide">
                 Walkthrough Video
               </h4>
-              <p className="text-[0.6875rem] text-slate-500 mt-2 max-w-[15rem] leading-relaxed">
+              <p className="text-[0.6875rem] text-slate-500 mt-2 max-w-60 leading-relaxed">
                 Watch a 2-minute video showing exactly how to test this clinical portal feature.
               </p>
 

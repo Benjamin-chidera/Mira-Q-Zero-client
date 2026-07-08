@@ -289,7 +289,7 @@ export function PatientCardMenu({ patient }: PatientCardMenuProps) {
         <div
           ref={menuRef}
           style={{ position: 'fixed', top: menuPosition.top, right: menuPosition.right }}
-          className="z-20 w-[13.125rem] bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden"
+          className="z-20 w-52.5 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden"
           onClick={(e) => e.stopPropagation()}
         >
           {menuItems.map((item) => {
@@ -312,7 +312,7 @@ export function PatientCardMenu({ patient }: PatientCardMenuProps) {
       <AlertDialog open={isUpdateOpen} onOpenChange={setIsUpdateOpen}>
         <AlertDialogContent
           size="xl"
-          className="p-0 gap-0 overflow-hidden rounded-2xl shadow-2xl border-0 w-[98vw] max-w-[87.5rem]! h-[92vh] flex flex-col bg-white"
+          className="p-0 gap-0 overflow-hidden rounded-2xl shadow-2xl border-0 w-[98vw] max-w-350! h-[92vh] flex flex-col bg-white"
         >
           {/* Top Header Bar */}
           <div className="bg-linear-to-r from-[#005EB8] to-[#003B7A] px-8 py-5 text-white flex items-center justify-between shrink-0">
@@ -341,7 +341,7 @@ export function PatientCardMenu({ patient }: PatientCardMenuProps) {
           {/* Main Layout Grid */}
           <div className="flex-1 flex min-h-0 overflow-hidden">
             {/* Left Side: Blocks/Tabs Sidebar */}
-            <div className="w-[18.75rem] bg-slate-50 border-r border-slate-100 flex flex-col justify-between shrink-0 select-none">
+            <div className="w-75 bg-slate-50 border-r border-slate-100 flex flex-col justify-between shrink-0 select-none">
               <div className="flex flex-col gap-2 p-4">
                 {sidebarTabs.map((tab) => {
                   const TabIcon = tab.icon;
@@ -416,7 +416,7 @@ export function PatientCardMenu({ patient }: PatientCardMenuProps) {
       </AlertDialog>
 
       {showToast && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[9999] flex items-center gap-3.5 px-5 py-3.5 bg-white/90 backdrop-blur-md border border-emerald-100 shadow-2xl rounded-2xl animate-in fade-in slide-in-from-top-4 duration-300">
+        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-9999 flex items-center gap-3.5 px-5 py-3.5 bg-white/90 backdrop-blur-md border border-emerald-100 shadow-2xl rounded-2xl animate-in fade-in slide-in-from-top-4 duration-300">
           <div className="w-6 h-6 rounded-full bg-emerald-500 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3">
               <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
